@@ -1,103 +1,98 @@
-import Image from "next/image";
+"use client"
+
+import { useState } from "react"
+import LoginForm from "@/components/login-form"
+import Header from "@/components/header"
+import MedicationPanel from "@/components/medication-panel"
+import InteractionPanel from "@/components/interaction-panel"
+
+interface Medication {
+  name: string
+  id: string
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [selectedMedications, setSelectedMedications] = useState<Medication[]>([])
+  const [isCheckingInteractions, setIsCheckingInteractions] = useState(false)
+  const [shouldCheckInteractions, setShouldCheckInteractions] = useState(false)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleLogin = (success: boolean) => {
+    setIsLoggedIn(success)
+  }
+
+  const handleMedicationSelect = (medicationName: string, medicationId: string) => {
+    // Check if medication is already in the list
+    if (!selectedMedications.some((med) => med.id === medicationId)) {
+      setSelectedMedications([...selectedMedications, { name: medicationName, id: medicationId }])
+
+      // Reset the check state when medications change
+      setShouldCheckInteractions(false)
+    }
+  }
+
+  const handleRemoveMedication = (index: number) => {
+    const newMedications = [...selectedMedications]
+    newMedications.splice(index, 1)
+    setSelectedMedications(newMedications)
+
+    // Reset the check state when medications change
+    setShouldCheckInteractions(false)
+    setIsCheckingInteractions(false)
+  }
+
+  const handleClearSelections = () => {
+    setSelectedMedications([])
+    setShouldCheckInteractions(false)
+    setIsCheckingInteractions(false)
+  }
+
+  const handleCheckInteractions = () => {
+    if (selectedMedications.length < 2) return
+    setIsCheckingInteractions(true)
+    setShouldCheckInteractions(true)
+  }
+
+  const handleCheckComplete = () => {
+    setIsCheckingInteractions(false)
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <LoginForm onLogin={handleLogin} />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {/* Top Frame - Header */}
+      <Header onClearSelections={handleClearSelections} onLogout={() => setIsLoggedIn(false)} />
+
+      {/* Y-Frame Layout */}
+      <div className="flex flex-col md:flex-row flex-grow">
+        {/* Left Frame - Medication Selection */}
+        <div className="w-full md:w-1/2 p-4 border-r border-gray-200">
+          <MedicationPanel
+            onSelectMedication={handleMedicationSelect}
+            selectedMedications={selectedMedications}
+            onCheckInteractions={handleCheckInteractions}
+            onRemoveMedication={handleRemoveMedication}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        {/* Right Frame - Interaction Results */}
+        <div className="w-full md:w-1/2 p-4">
+          <InteractionPanel
+            medications={selectedMedications}
+            isLoading={isCheckingInteractions}
+            shouldCheck={shouldCheckInteractions}
+            onCheckComplete={handleCheckComplete}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
+
