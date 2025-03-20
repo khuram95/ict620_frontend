@@ -27,8 +27,8 @@ export default function ComplementaryMedicinesPage() {
     const fetchMedicines = async () => {
       try {
         setLoading(true)
-        const data = await complementaryMedicineApi.getAll()
-        setMedicines(data)
+        const response = await complementaryMedicineApi.getAll()
+        setMedicines(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching complementary medicines:", err)
@@ -40,8 +40,8 @@ export default function ComplementaryMedicinesPage() {
     fetchMedicines()
   }, [])
 
-  const handleDelete = (id: string) => {
-    setDeleteId(id)
+  const handleDelete = (id: string | number) => {
+      setDeleteId(id.toString())
   }
 
   const confirmDelete = async () => {
@@ -49,7 +49,7 @@ export default function ComplementaryMedicinesPage() {
 
     try {
       // In a real implementation, this would call the API
-      // await complementaryMedicineApi.delete(deleteId)
+      await complementaryMedicineApi.delete(deleteId)
       setMedicines(medicines.filter((med) => med.compl_med_id.toString() !== deleteId))
       toast({
         title: "Complementary medicine deleted",

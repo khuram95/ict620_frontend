@@ -17,14 +17,9 @@ export default function EditFoodItemPage({ params }: { params: { id: string } })
     const fetchFoodItem = async () => {
       try {
         setLoading(true)
-        // In a real implementation, this would call the API
-        // const data = await foodItemApi.getById(params.id)
+        const response = await foodItemApi.getById(params.id)
 
-        // For now, use mock data
-        const allFoodItems = await foodItemApi.getAll()
-        const foodItem = allFoodItems.find((item) => item.food_id.toString() === params.id)
-
-        setFoodItem(foodItem || null)
+        setFoodItem(response.data || null)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching food item:", err)
@@ -40,8 +35,7 @@ export default function EditFoodItemPage({ params }: { params: { id: string } })
     setSaving(true)
 
     try {
-      // In a real implementation, this would call the API
-      // await foodItemApi.update(params.id, data)
+      await foodItemApi.update(params.id, data)
 
       toast({
         title: "Food item updated",

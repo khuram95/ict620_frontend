@@ -27,8 +27,8 @@ export default function FoodItemsPage() {
     const fetchFoodItems = async () => {
       try {
         setLoading(true)
-        const data = await foodItemApi.getAll()
-        setFoodItems(data)
+        const response = await foodItemApi.getAll()
+        setFoodItems(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching food items:", err)
@@ -40,8 +40,8 @@ export default function FoodItemsPage() {
     fetchFoodItems()
   }, [])
 
-  const handleDelete = (id: string) => {
-    setDeleteId(id)
+  const handleDelete = (id: string | number) => {
+      setDeleteId(id.toString())
   }
 
   const confirmDelete = async () => {

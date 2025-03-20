@@ -17,8 +17,8 @@ export default function EditAllergyPage({ params }: { params: { id: string } }) 
     const fetchAllergy = async () => {
       try {
         setLoading(true)
-        const data = await allergyApi.getById(params.id)
-        setAllergy(data)
+        const response = await allergyApi.getById(params.id)
+        setAllergy(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching allergy:", err)

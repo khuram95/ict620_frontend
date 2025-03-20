@@ -34,8 +34,8 @@ export default function ComplementaryMedicineDetailPage({ params }: { params: { 
         // const data = await complementaryMedicineApi.getById(params.id)
 
         // For now, use mock data
-        const allMedicines = await complementaryMedicineApi.getAll()
-        const medicine = allMedicines.find((m) => m.compl_med_id.toString() === params.id)
+        const response = await complementaryMedicineApi.getAll()
+        const medicine = response.data.find((m) => m.compl_med_id.toString() === params.id)
 
         setMedicine(medicine || null)
         setLoading(false)

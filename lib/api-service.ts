@@ -1,5 +1,51 @@
 // Comprehensive API service with dummy data for all entities
 
+import axios, { AxiosResponse } from "axios";
+
+// Define your base URL. Adjust as necessary.
+const API_BASE_URL = "http://localhost:5000/api";
+
+// Optionally, create an Axios instance to automatically attach authentication headers
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+/// inerceptor for the apiClient
+apiClient.interceptors.request.use(config => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+
+export const userApi = {
+  getAll: (): Promise<AxiosResponse> =>
+    apiClient.get("/users"),
+  getOne: (id: number): Promise<AxiosResponse> =>
+    apiClient.get(`/users/${id}`),
+  create: (data: any): Promise<AxiosResponse> =>
+    apiClient.post("/users/", data),
+  update: (id: number, data: any): Promise<AxiosResponse> =>
+    apiClient.put(`/users/${id}`, data),
+  delete: (id: number): Promise<AxiosResponse> =>
+    apiClient.delete(`/users/${id}`),
+  login: (email: string, password: string): Promise<AxiosResponse> =>
+    apiClient.post("/login/", { email, password }),
+};
+
+
+
+
+
+
+
+
+
+
+
+
 // Medication type definition
 export interface Medication {
   medication_id: number
@@ -69,119 +115,27 @@ const mockMedications: Medication[] = [
   },
 ]
 
-// Simple medication API functions
 export const medicationApi = {
   // Get all medications
-  getAll: async (): Promise<Medication[]> => {
-    try {
-      // In a real implementation, this would fetch from an API
-      // const response = await fetch("http://127.0.0.1:5000/api/medications/");
-      // return await response.json();
-
-      // For now, return mock data
-      return mockMedications
-    } catch (error) {
-      console.error("Error fetching medications:", error)
-      return mockMedications
-    }
-  },
+  getAll: (): Promise<AxiosResponse<Medication[]>> =>
+    apiClient.get("/medications/"),
 
   // Get medication by ID
-  getById: async (id: string | number): Promise<Medication | null> => {
-    try {
-      // In a real implementation, this would fetch from an API
-      // const response = await fetch(`http://127.0.0.1:5000/api/medications/${id}`);
-      // return await response.json();
-
-      // For now, find in mock data
-      const medication = mockMedications.find((m) => m.medication_id === Number(id))
-      return medication || null
-    } catch (error) {
-      console.error(`Error fetching medication with ID ${id}:`, error)
-      return null
-    }
-  },
+  getById: (id: string | number): Promise<AxiosResponse<Medication>> =>
+    apiClient.get(`/medications/${id}`),
 
   // Create a new medication
-  create: async (data: Partial<Medication>): Promise<Medication> => {
-    try {
-      // In a real implementation, this would post to an API
-      // const response = await fetch('http://127.0.0.1:5000/api/medications', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(data)
-      // });
-      // return await response.json();
-
-      // For now, create a mock medication
-      const newMedication: Medication = {
-        ...data,
-        medication_id: Math.floor(Math.random() * 1000) + 100,
-        created_at: new Date().toISOString(),
-        description: data.description || null,
-      } as Medication
-
-      mockMedications.push(newMedication)
-      return newMedication
-    } catch (error) {
-      console.error("Error creating medication:", error)
-      throw new Error("Failed to create medication")
-    }
-  },
+  create: (data: Partial<Medication>): Promise<AxiosResponse<Medication>> =>
+    apiClient.post("/medications/", data),
 
   // Update an existing medication
-  update: async (id: string | number, data: Partial<Medication>): Promise<Medication> => {
-    try {
-      // In a real implementation, this would put to an API
-      // const response = await fetch(`http://127.0.0.1:5000/api/medications/${id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(data)
-      // });
-      // return await response.json();
-
-      // For now, update a mock medication
-      const index = mockMedications.findIndex((m) => m.medication_id === Number(id))
-
-      if (index === -1) {
-        throw new Error(`Medication with ID ${id} not found`)
-      }
-
-      const updatedMedication: Medication = {
-        ...mockMedications[index],
-        ...data,
-        updated_at: new Date().toISOString(),
-      }
-
-      mockMedications[index] = updatedMedication
-      return updatedMedication
-    } catch (error) {
-      console.error(`Error updating medication with ID ${id}:`, error)
-      throw new Error("Failed to update medication")
-    }
-  },
+  update: (id: string | number, data: Partial<Medication>): Promise<AxiosResponse<Medication>> =>
+    apiClient.put(`/medications/${id}`, data),
 
   // Delete a medication
-  delete: async (id: string | number): Promise<void> => {
-    try {
-      // In a real implementation, this would delete from an API
-      // await fetch(`http://127.0.0.1:5000/api/medications/${id}`, {
-      //   method: 'DELETE'
-      // });
-
-      // For now, just remove from mock data
-      const index = mockMedications.findIndex((m) => m.medication_id === Number(id))
-      if (index !== -1) {
-        mockMedications.splice(index, 1)
-      }
-      console.log(`Medication with ID ${id} deleted`)
-    } catch (error) {
-      console.error(`Error deleting medication with ID ${id}:`, error)
-      throw new Error("Failed to delete medication")
-    }
-  },
+  delete: (id: string | number): Promise<AxiosResponse> =>
+    apiClient.delete(`/medications/${id}`),
 }
-
 // Allergy type definition
 export interface Allergy {
   allergy_id: number
@@ -225,48 +179,25 @@ const mockAllergies: Allergy[] = [
 ]
 
 export const allergyApi = {
-  getAll: async (): Promise<Allergy[]> => {
-    return mockAllergies
-  },
-  getById: async (id: string | number): Promise<Allergy | null> => {
-    const allergy = mockAllergies.find((a) => a.allergy_id === Number(id))
-    return allergy || null
-  },
-  create: async (data: Partial<Allergy>): Promise<Allergy> => {
-    const newAllergy: Allergy = {
-      ...data,
-      allergy_id: Math.floor(Math.random() * 1000) + 100,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-      description: data.description || null,
-    } as Allergy
+  // Get all allergies
+  getAll: (): Promise<AxiosResponse<Allergy[]>> => apiClient.get("/allergies/"),
 
-    mockAllergies.push(newAllergy)
-    return newAllergy
-  },
-  update: async (id: string | number, data: Partial<Allergy>): Promise<Allergy> => {
-    const index = mockAllergies.findIndex((a) => a.allergy_id === Number(id))
+  // Get allergy by ID
+  getById: (id: string | number): Promise<AxiosResponse<Allergy>> =>
+    apiClient.get(`/allergies/${id}`),
 
-    if (index === -1) {
-      throw new Error(`Allergy with ID ${id} not found`)
-    }
+  // Create a new allergy
+  create: (data: Partial<Allergy>): Promise<AxiosResponse<Allergy>> =>
+    apiClient.post("/allergies/", data),
 
-    const updatedAllergy: Allergy = {
-      ...mockAllergies[index],
-      ...data,
-      updated_at: new Date().toISOString(),
-    }
+  // Update an existing allergy
+  update: (id: string | number, data: Partial<Allergy>): Promise<AxiosResponse<Allergy>> =>
+    apiClient.put(`/allergies/${id}`, data),
 
-    mockAllergies[index] = updatedAllergy
-    return updatedAllergy
-  },
-  delete: async (id: string | number): Promise<void> => {
-    const index = mockAllergies.findIndex((a) => a.allergy_id === Number(id))
-    if (index !== -1) {
-      mockAllergies.splice(index, 1)
-    }
-  },
-}
+  // Delete an allergy
+  delete: (id: string | number): Promise<AxiosResponse<void>> =>
+    apiClient.delete(`/allergies/${id}`),
+};
 
 // Food Item type definition
 export interface FoodItem {
@@ -323,49 +254,25 @@ const mockFoodItems: FoodItem[] = [
 ]
 
 export const foodItemApi = {
-  getAll: async (): Promise<FoodItem[]> => {
-    return mockFoodItems
-  },
-  getById: async (id: string | number): Promise<FoodItem | null> => {
-    const foodItem = mockFoodItems.find((f) => f.food_id === Number(id))
-    return foodItem || null
-  },
-  delete: async (id: string | number): Promise<void> => {
-    const index = mockFoodItems.findIndex((f) => f.food_id === Number(id))
-    if (index !== -1) {
-      mockFoodItems.splice(index, 1)
-    }
-    console.log(`Food item with ID ${id} deleted`)
-  },
-  create: async (data: Partial<FoodItem>): Promise<FoodItem> => {
-    const newFoodItem: FoodItem = {
-      ...data,
-      food_id: Math.floor(Math.random() * 1000) + 100,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-      description: data.description || null,
-    } as FoodItem
+  // Get all food items
+  getAll: (): Promise<AxiosResponse<FoodItem[]>> => apiClient.get("/food_items/"),
 
-    mockFoodItems.push(newFoodItem)
-    return newFoodItem
-  },
-  update: async (id: string | number, data: Partial<FoodItem>): Promise<FoodItem> => {
-    const index = mockFoodItems.findIndex((f) => f.food_id === Number(id))
+  // Get food item by ID
+  getById: (id: string | number): Promise<AxiosResponse<FoodItem>> =>
+    apiClient.get(`/food_items/${id}`),
 
-    if (index === -1) {
-      throw new Error(`Food item with ID ${id} not found`)
-    }
+  // Create a new food item
+  create: (data: Partial<FoodItem>): Promise<AxiosResponse<FoodItem>> =>
+    apiClient.post("/food_items/", data),
 
-    const updatedFoodItem: FoodItem = {
-      ...mockFoodItems[index],
-      ...data,
-      updated_at: new Date().toISOString(),
-    }
+  // Update an existing food item
+  update: (id: string | number, data: Partial<FoodItem>): Promise<AxiosResponse<FoodItem>> =>
+    apiClient.put(`/food_items/${id}`, data),
 
-    mockFoodItems[index] = updatedFoodItem
-    return updatedFoodItem
-  },
-}
+  // Delete a food item
+  delete: (id: string | number): Promise<AxiosResponse<void>> =>
+    apiClient.delete(`/food_items/${id}`),
+};
 
 // Reference type definition
 export interface Reference {
@@ -414,50 +321,26 @@ const mockReferences: Reference[] = [
 ]
 
 export const referenceApi = {
-  getAll: async (): Promise<Reference[]> => {
-    return mockReferences
-  },
-  getById: async (id: string | number): Promise<Reference | null> => {
-    const reference = mockReferences.find((r) => r.reference_id === Number(id))
-    return reference || null
-  },
-  create: async (data: Partial<Reference>): Promise<Reference> => {
-    const newReference: Reference = {
-      ...data,
-      reference_id: Math.floor(Math.random() * 1000) + 100,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-      title: data.title || null,
-      url: data.url || null,
-      source_type: data.source_type || null,
-    } as Reference
+  // Get all references
+  getAll: (): Promise<AxiosResponse<Reference[]>> => apiClient.get("/references/"),
 
-    mockReferences.push(newReference)
-    return newReference
-  },
-  update: async (id: string | number, data: Partial<Reference>): Promise<Reference> => {
-    const index = mockReferences.findIndex((r) => r.reference_id === Number(id))
+  // Get reference by ID
+  getById: (id: string | number): Promise<AxiosResponse<Reference>> =>
+    apiClient.get(`/references/${id}`),
 
-    if (index === -1) {
-      throw new Error(`Reference with ID ${id} not found`)
-    }
+  // Create a new reference
+  create: (data: Partial<Reference>): Promise<AxiosResponse<Reference>> =>
+    apiClient.post("/references/", data),
 
-    const updatedReference: Reference = {
-      ...mockReferences[index],
-      ...data,
-      updated_at: new Date().toISOString(),
-    }
+  // Update an existing reference
+  update: (id: string | number, data: Partial<Reference>): Promise<AxiosResponse<Reference>> =>
+    apiClient.put(`/references/${id}`, data),
 
-    mockReferences[index] = updatedReference
-    return updatedReference
-  },
-  delete: async (id: string | number): Promise<void> => {
-    const index = mockReferences.findIndex((r) => r.reference_id === Number(id))
-    if (index !== -1) {
-      mockReferences.splice(index, 1)
-    }
-  },
-}
+  // Delete a reference
+  delete: (id: string | number): Promise<AxiosResponse<void>> =>
+    apiClient.delete(`/references/${id}`),
+};
+
 
 // Schedule type definition
 export interface Schedule {
@@ -506,49 +389,25 @@ const mockSchedules: Schedule[] = [
 ]
 
 export const scheduleApi = {
-  getAll: async (): Promise<Schedule[]> => {
-    return mockSchedules
-  },
-  getById: async (id: string | number): Promise<Schedule | null> => {
-    const schedule = mockSchedules.find((s) => s.ScheduleID === Number(id))
-    return schedule || null
-  },
-  create: async (data: Partial<Schedule>): Promise<Schedule> => {
-    const newSchedule: Schedule = {
-      ...data,
-      ScheduleID: Math.floor(Math.random() * 1000) + 100,
-      ScheduleName: data.ScheduleName || "",
-      Description: data.Description || null,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-    } as Schedule
+  // Get all schedules
+  getAll: (): Promise<AxiosResponse<Schedule[]>> => apiClient.get("/schedules/"),
 
-    mockSchedules.push(newSchedule)
-    return newSchedule
-  },
-  update: async (id: string | number, data: Partial<Schedule>): Promise<Schedule> => {
-    const index = mockSchedules.findIndex((s) => s.ScheduleID === Number(id))
+  // Get schedule by ID
+  getById: (id: string | number): Promise<AxiosResponse<Schedule>> =>
+    apiClient.get(`/schedules/${id}`),
 
-    if (index === -1) {
-      throw new Error(`Schedule with ID ${id} not found`)
-    }
+  // Create a new schedule
+  create: (data: Partial<Schedule>): Promise<AxiosResponse<Schedule>> =>
+    apiClient.post("/schedules/", data),
 
-    const updatedSchedule: Schedule = {
-      ...mockSchedules[index],
-      ...data,
-      updated_at: new Date().toISOString(),
-    }
+  // Update an existing schedule
+  update: (id: string | number, data: Partial<Schedule>): Promise<AxiosResponse<Schedule>> =>
+    apiClient.put(`/schedules/${id}`, data),
 
-    mockSchedules[index] = updatedSchedule
-    return updatedSchedule
-  },
-  delete: async (id: string | number): Promise<void> => {
-    const index = mockSchedules.findIndex((s) => s.ScheduleID === Number(id))
-    if (index !== -1) {
-      mockSchedules.splice(index, 1)
-    }
-  },
-}
+  // Delete a schedule
+  delete: (id: string | number): Promise<AxiosResponse<void>> =>
+    apiClient.delete(`/schedules/${id}`),
+};
 
 // User type definition
 export interface User {
@@ -562,82 +421,8 @@ export interface User {
 }
 
 // Mock data for users
-const mockUsers: User[] = [
-  {
-    user_id: 1,
-    email: "admin@example.com",
-    password_hash: "hashed_password_here",
-    full_name: "Admin User",
-    is_admin: true,
-    created_at: new Date().toISOString(),
-    updated_at: null,
-  },
-  {
-    user_id: 2,
-    email: "pharmacist@example.com",
-    password_hash: "hashed_password_here",
-    full_name: "John Pharmacist",
-    is_admin: false,
-    created_at: new Date().toISOString(),
-    updated_at: null,
-  },
-  {
-    user_id: 3,
-    email: "student@example.com",
-    password_hash: "hashed_password_here",
-    full_name: "Jane Student",
-    is_admin: false,
-    created_at: new Date().toISOString(),
-    updated_at: null,
-  },
-]
 
-export const userApi = {
-  getAll: async (): Promise<User[]> => {
-    return mockUsers
-  },
-  getById: async (id: string | number): Promise<User | null> => {
-    const user = mockUsers.find((u) => u.user_id === Number(id))
-    return user || null
-  },
-  create: async (data: Partial<User>): Promise<User> => {
-    const newUser: User = {
-      ...data,
-      user_id: Math.floor(Math.random() * 1000) + 100,
-      email: data.email || "",
-      password_hash: data.password_hash || "hashed_password_here",
-      full_name: data.full_name || null,
-      is_admin: data.is_admin || false,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-    } as User
 
-    mockUsers.push(newUser)
-    return newUser
-  },
-  update: async (id: string | number, data: Partial<User>): Promise<User> => {
-    const index = mockUsers.findIndex((u) => u.user_id === Number(id))
-
-    if (index === -1) {
-      throw new Error(`User with ID ${id} not found`)
-    }
-
-    const updatedUser: User = {
-      ...mockUsers[index],
-      ...data,
-      updated_at: new Date().toISOString(),
-    }
-
-    mockUsers[index] = updatedUser
-    return updatedUser
-  },
-  delete: async (id: string | number): Promise<void> => {
-    const index = mockUsers.findIndex((u) => u.user_id === Number(id))
-    if (index !== -1) {
-      mockUsers.splice(index, 1)
-    }
-  },
-}
 
 // Drug-Drug Interaction type definition
 export interface DrugDrugInteraction {
@@ -841,50 +626,25 @@ const mockComplementaryMedicines: ComplementaryMedicine[] = [
 ]
 
 export const complementaryMedicineApi = {
-  getAll: async (): Promise<ComplementaryMedicine[]> => {
-    return mockComplementaryMedicines
-  },
-  getById: async (id: string | number): Promise<ComplementaryMedicine | null> => {
-    const medicine = mockComplementaryMedicines.find((m) => m.compl_med_id === Number(id))
-    return medicine || null
-  },
-  delete: async (id: string | number): Promise<void> => {
-    const index = mockComplementaryMedicines.findIndex((m) => m.compl_med_id === Number(id))
-    if (index !== -1) {
-      mockComplementaryMedicines.splice(index, 1)
-    }
-    console.log(`Complementary medicine with ID ${id} deleted`)
-  },
-  create: async (data: Partial<ComplementaryMedicine>): Promise<ComplementaryMedicine> => {
-    const newMedicine: ComplementaryMedicine = {
-      ...data,
-      compl_med_id: Math.floor(Math.random() * 1000) + 100,
-      name: data.name || "",
-      description: data.description || null,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-    } as ComplementaryMedicine
+  // Get all complementary medicines
+  getAll: (): Promise<AxiosResponse<ComplementaryMedicine[]>> => apiClient.get("/complementary_medicines/"),
 
-    mockComplementaryMedicines.push(newMedicine)
-    return newMedicine
-  },
-  update: async (id: string | number, data: Partial<ComplementaryMedicine>): Promise<ComplementaryMedicine> => {
-    const index = mockComplementaryMedicines.findIndex((m) => m.compl_med_id === Number(id))
+  // Get complementary medicine by ID
+  getById: (id: string | number): Promise<AxiosResponse<ComplementaryMedicine>> =>
+    apiClient.get(`/complementary_medicines/${id}`),
 
-    if (index === -1) {
-      throw new Error(`Complementary medicine with ID ${id} not found`)
-    }
+  // Create a new complementary medicine
+  create: (data: Partial<ComplementaryMedicine>): Promise<AxiosResponse<ComplementaryMedicine>> =>
+    apiClient.post("/complementary_medicines/", data),
 
-    const updatedMedicine: ComplementaryMedicine = {
-      ...mockComplementaryMedicines[index],
-      ...data,
-      updated_at: new Date().toISOString(),
-    }
+  // Update an existing complementary medicine
+  update: (id: string | number, data: Partial<ComplementaryMedicine>): Promise<AxiosResponse<ComplementaryMedicine>> =>
+    apiClient.put(`/complementary_medicines/${id}`, data),
 
-    mockComplementaryMedicines[index] = updatedMedicine
-    return updatedMedicine
-  },
-}
+  // Delete a complementary medicine
+  delete: (id: string | number): Promise<AxiosResponse<void>> =>
+    apiClient.delete(`/complementary_medicines/${id}`),
+};
 
 // Drug-Food Interaction type definition
 export interface DrugFoodInteraction {

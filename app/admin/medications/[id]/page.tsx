@@ -30,8 +30,8 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
     const fetchMedication = async () => {
       try {
         setLoading(true)
-        const data = await medicationApi.getById(params.id)
-        setMedication(data)
+        const response = await medicationApi.getById(params.id)
+        setMedication(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching medication:", err)

@@ -17,8 +17,8 @@ export default function EditSchedulePage({ params }: { params: { id: string } })
     const fetchSchedule = async () => {
       try {
         setLoading(true)
-        const data = await scheduleApi.getById(params.id)
-        setSchedule(data)
+        const response = await scheduleApi.getById(params.id)
+        setSchedule(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching schedule:", err)

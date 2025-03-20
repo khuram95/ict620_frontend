@@ -17,8 +17,8 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
     const fetchUser = async () => {
       try {
         setLoading(true)
-        const data = await userApi.getById(params.id)
-        setUser(data)
+        const response = await userApi.getOne(Number(params.id))
+        setUser(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching user:", err)
@@ -34,7 +34,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
     setSaving(true)
 
     try {
-      await userApi.update(params.id, data)
+      await userApi.update(Number(params.id), data)
 
       toast({
         title: "User updated",

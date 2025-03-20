@@ -34,8 +34,8 @@ export default function FoodItemDetailPage({ params }: { params: { id: string } 
         // const data = await foodItemApi.getById(params.id)
 
         // For now, use mock data
-        const allFoodItems = await foodItemApi.getAll()
-        const foodItem = allFoodItems.find((item) => item.food_id.toString() === params.id)
+        const response = await foodItemApi.getAll()
+        const foodItem = response.data.find((item: FoodItem) => item.food_id.toString() === params.id)
 
         setFoodItem(foodItem || null)
         setLoading(false)

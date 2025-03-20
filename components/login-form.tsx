@@ -1,12 +1,19 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+// Import the apiService (adjust the path as necessary)
+import { userApi } from "../lib/api-service"
 
 interface LoginFormProps {
   onLogin: (success: boolean) => void
@@ -17,19 +24,29 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Simple validation
     if (!username || !password) {
       setError("Please enter both username and password")
       return
     }
 
-    // In a real app, you would validate credentials against a backend
-    // For this demo, we'll just accept any non-empty credentials
-    setError("")
-    onLogin(true)
+    try {
+      // Use the user API's login method from our apiService.
+      const res = await userApi.login(username, password)
+      // Extract token and user info from the response.
+      const { token, user } = res.data
+
+      // Save the JWT token to localStorage for subsequent API calls.
+      localStorage.setItem("jwtToken", token)
+      onLogin(true)
+      console.log("Login successful for user:", user)
+    } catch (err: any) {
+      // Check for error response from the API service
+      setError(err.response?.data?.error || "Login failed")
+      console.error("Login error:", err)
+    }
   }
 
   return (
@@ -55,7 +72,12 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
@@ -72,4 +94,3 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
     </Card>
   )
 }
-

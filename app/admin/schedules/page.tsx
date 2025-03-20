@@ -27,8 +27,9 @@ export default function SchedulesPage() {
     const fetchSchedules = async () => {
       try {
         setLoading(true)
-        const data = await scheduleApi.getAll()
-        setSchedules(data)
+
+        const response = await scheduleApi.getAll()
+        setSchedules(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching schedules:", err)
@@ -40,9 +41,9 @@ export default function SchedulesPage() {
     fetchSchedules()
   }, [])
 
-  const handleDelete = (id: string) => {
-    setDeleteId(id)
-  }
+  const handleDelete = (id: string | number) => {
+      setDeleteId(id.toString())
+    }
 
   const confirmDelete = async () => {
     if (!deleteId) return

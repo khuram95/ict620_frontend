@@ -17,8 +17,8 @@ export default function EditReferencePage({ params }: { params: { id: string } }
     const fetchReference = async () => {
       try {
         setLoading(true)
-        const data = await referenceApi.getById(params.id)
-        setReference(data)
+        const response = await referenceApi.getById(params.id)
+        setReference(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching reference:", err)
