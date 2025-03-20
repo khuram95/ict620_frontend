@@ -17,14 +17,8 @@ export default function EditComplementaryMedicinePage({ params }: { params: { id
     const fetchMedicine = async () => {
       try {
         setLoading(true)
-        // In a real implementation, this would call the API
-        // const data = await complementaryMedicineApi.getById(params.id)
-
-        // For now, use mock data
-        const allMedicines = await complementaryMedicineApi.getAll()
-        const medicine = allMedicines.find((m) => m.compl_med_id.toString() === params.id)
-
-        setMedicine(medicine || null)
+        const response = await complementaryMedicineApi.getById(params.id)
+        setMedicine(response.data || null)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching complementary medicine:", err)
@@ -40,8 +34,7 @@ export default function EditComplementaryMedicinePage({ params }: { params: { id
     setSaving(true)
 
     try {
-      // In a real implementation, this would call the API
-      // await complementaryMedicineApi.update(params.id, data)
+      await complementaryMedicineApi.update(params.id, data)
 
       toast({
         title: "Complementary medicine updated",

@@ -27,8 +27,8 @@ export default function ReferencesPage() {
     const fetchReferences = async () => {
       try {
         setLoading(true)
-        const data = await referenceApi.getAll()
-        setReferences(data)
+        const response = await referenceApi.getAll()
+        setReferences(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching references:", err)
@@ -40,8 +40,8 @@ export default function ReferencesPage() {
     fetchReferences()
   }, [])
 
-  const handleDelete = (id: string) => {
-    setDeleteId(id)
+  const handleDelete = (id: string | number) => {
+    setDeleteId(id.toString())
   }
 
   const confirmDelete = async () => {

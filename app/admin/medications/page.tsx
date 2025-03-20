@@ -27,8 +27,8 @@ export default function MedicationsPage() {
     const fetchMedications = async () => {
       try {
         setLoading(true)
-        const data = await medicationApi.getAll()
-        setMedications(data)
+        const response = await medicationApi.getAll()
+        setMedications(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching medications:", err)
@@ -40,8 +40,8 @@ export default function MedicationsPage() {
     fetchMedications()
   }, [])
 
-  const handleDelete = (id: string) => {
-    setDeleteId(id)
+  const handleDelete = (id: string | number) => {
+    setDeleteId(id.toString())
   }
 
   const confirmDelete = async () => {

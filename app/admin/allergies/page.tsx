@@ -27,8 +27,8 @@ export default function AllergiesPage() {
     const fetchAllergies = async () => {
       try {
         setLoading(true)
-        const data = await allergyApi.getAll()
-        setAllergies(data)
+        const response = await allergyApi.getAll()
+        setAllergies(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching allergies:", err)
@@ -40,8 +40,8 @@ export default function AllergiesPage() {
     fetchAllergies()
   }, [])
 
-  const handleDelete = (id: string) => {
-    setDeleteId(id)
+  const handleDelete = (id: string | number) => {
+    setDeleteId(id.toString())
   }
 
   const confirmDelete = async () => {
