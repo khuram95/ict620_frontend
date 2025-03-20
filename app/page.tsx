@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import LoginForm from "@/components/login-form"
 import Header from "@/components/header"
 import MedicationPanel from "@/components/medication-panel"
@@ -17,16 +17,21 @@ export default function Home() {
   const [isCheckingInteractions, setIsCheckingInteractions] = useState(false)
   const [shouldCheckInteractions, setShouldCheckInteractions] = useState(false)
 
+  // Check for a JWT token on mount
+  useEffect(() => {
+    const token = localStorage.getItem("jwtToken")
+    if (token) {
+      setIsLoggedIn(true)
+    }
+  }, [])
+
   const handleLogin = (success: boolean) => {
     setIsLoggedIn(success)
   }
 
   const handleMedicationSelect = (medicationName: string, medicationId: string) => {
-    // Check if medication is already in the list
     if (!selectedMedications.some((med) => med.id === medicationId)) {
       setSelectedMedications([...selectedMedications, { name: medicationName, id: medicationId }])
-
-      // Reset the check state when medications change
       setShouldCheckInteractions(false)
     }
   }
@@ -35,8 +40,6 @@ export default function Home() {
     const newMedications = [...selectedMedications]
     newMedications.splice(index, 1)
     setSelectedMedications(newMedications)
-
-    // Reset the check state when medications change
     setShouldCheckInteractions(false)
     setIsCheckingInteractions(false)
   }
@@ -67,12 +70,15 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Top Frame - Header */}
-      <Header onClearSelections={handleClearSelections} onLogout={() => setIsLoggedIn(false)} />
+      <Header 
+        onClearSelections={handleClearSelections} 
+        onLogout={() => {
+          localStorage.removeItem("jwtToken")
+          setIsLoggedIn(false)
+        }} 
+      />
 
-      {/* Y-Frame Layout */}
       <div className="flex flex-col md:flex-row flex-grow">
-        {/* Left Frame - Medication Selection */}
         <div className="w-full md:w-1/2 p-4 border-r border-gray-200">
           <MedicationPanel
             onSelectMedication={handleMedicationSelect}
@@ -81,8 +87,6 @@ export default function Home() {
             onRemoveMedication={handleRemoveMedication}
           />
         </div>
-
-        {/* Right Frame - Interaction Results */}
         <div className="w-full md:w-1/2 p-4">
           <InteractionPanel
             medications={selectedMedications}
@@ -95,4 +99,3 @@ export default function Home() {
     </div>
   )
 }
-

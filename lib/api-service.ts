@@ -1,5 +1,51 @@
 // Comprehensive API service with dummy data for all entities
 
+import axios, { AxiosResponse } from "axios";
+
+// Define your base URL. Adjust as necessary.
+const API_BASE_URL = "http://localhost:5000/api";
+
+// Optionally, create an Axios instance to automatically attach authentication headers
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+/// inerceptor for the apiClient
+apiClient.interceptors.request.use(config => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+
+export const userApi = {
+  getAll: (): Promise<AxiosResponse> =>
+    apiClient.get("/users"),
+  getOne: (id: number): Promise<AxiosResponse> =>
+    apiClient.get(`/users/${id}`),
+  create: (data: any): Promise<AxiosResponse> =>
+    apiClient.post("/users/", data),
+  update: (id: number, data: any): Promise<AxiosResponse> =>
+    apiClient.put(`/users/${id}`, data),
+  delete: (id: number): Promise<AxiosResponse> =>
+    apiClient.delete(`/users/${id}`),
+  login: (email: string, password: string): Promise<AxiosResponse> =>
+    apiClient.post("/login/", { email, password }),
+};
+
+
+
+
+
+
+
+
+
+
+
+
 // Medication type definition
 export interface Medication {
   medication_id: number
@@ -592,52 +638,7 @@ const mockUsers: User[] = [
   },
 ]
 
-export const userApi = {
-  getAll: async (): Promise<User[]> => {
-    return mockUsers
-  },
-  getById: async (id: string | number): Promise<User | null> => {
-    const user = mockUsers.find((u) => u.user_id === Number(id))
-    return user || null
-  },
-  create: async (data: Partial<User>): Promise<User> => {
-    const newUser: User = {
-      ...data,
-      user_id: Math.floor(Math.random() * 1000) + 100,
-      email: data.email || "",
-      password_hash: data.password_hash || "hashed_password_here",
-      full_name: data.full_name || null,
-      is_admin: data.is_admin || false,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-    } as User
 
-    mockUsers.push(newUser)
-    return newUser
-  },
-  update: async (id: string | number, data: Partial<User>): Promise<User> => {
-    const index = mockUsers.findIndex((u) => u.user_id === Number(id))
-
-    if (index === -1) {
-      throw new Error(`User with ID ${id} not found`)
-    }
-
-    const updatedUser: User = {
-      ...mockUsers[index],
-      ...data,
-      updated_at: new Date().toISOString(),
-    }
-
-    mockUsers[index] = updatedUser
-    return updatedUser
-  },
-  delete: async (id: string | number): Promise<void> => {
-    const index = mockUsers.findIndex((u) => u.user_id === Number(id))
-    if (index !== -1) {
-      mockUsers.splice(index, 1)
-    }
-  },
-}
 
 // Drug-Drug Interaction type definition
 export interface DrugDrugInteraction {

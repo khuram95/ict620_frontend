@@ -31,8 +31,8 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
     const fetchUser = async () => {
       try {
         setLoading(true)
-        const data = await userApi.getById(params.id)
-        setUser(data)
+        const response = await userApi.getOne(Number(params.id))
+        setUser(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching user:", err)
@@ -46,7 +46,7 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
 
   const handleDelete = async () => {
     try {
-      await userApi.delete(params.id)
+      await userApi.delete(Number(params.id))
 
       toast({
         title: "User deleted",

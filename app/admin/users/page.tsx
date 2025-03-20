@@ -28,8 +28,8 @@ export default function UsersPage() {
     const fetchUsers = async () => {
       try {
         setLoading(true)
-        const data = await userApi.getAll()
-        setUsers(data)
+        const response = await userApi.getAll()
+        setUsers(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching users:", err)
@@ -41,15 +41,15 @@ export default function UsersPage() {
     fetchUsers()
   }, [])
 
-  const handleDelete = (id: string) => {
-    setDeleteId(id)
+  const handleDelete = (id: string | number) => {
+    setDeleteId(id.toString())
   }
 
   const confirmDelete = async () => {
     if (!deleteId) return
 
     try {
-      await userApi.delete(deleteId)
+      await userApi.delete(Number(deleteId))
       setUsers(users.filter((user) => user.user_id.toString() !== deleteId))
       toast({
         title: "User deleted",
@@ -130,7 +130,7 @@ export default function UsersPage() {
           Users
         </h1>
       </div>
-
+      
       <DataTable data={users} columns={columns} primaryKey="user_id" basePath="/admin/users" onDelete={handleDelete} />
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

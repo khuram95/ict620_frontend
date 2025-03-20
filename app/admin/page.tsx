@@ -75,7 +75,7 @@ export default function AdminDashboard() {
             }),
             userApi.getAll().catch((err) => {
               console.error("Error fetching users:", err)
-              setUsingMockData(true)
+              setUsingMockData(false)
               return []
             }),
             complementaryMedicineApi.getAll().catch((err) => {
@@ -84,14 +84,14 @@ export default function AdminDashboard() {
               return []
             }),
           ])
-
+            console.log(users)
         setStats({
           medications: medications.length,
           allergies: allergies.length,
           foodItems: foodItems.length,
           references: references.length,
           schedules: schedules.length,
-          users: users.length,
+          users: Array.isArray(users) ? users.length : users.data.length,
           complementaryMedicines: complementaryMedicines.length,
         })
 
