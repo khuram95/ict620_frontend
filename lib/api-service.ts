@@ -19,6 +19,11 @@ apiClient.interceptors.request.use(config => {
   return config;
 });
 
+// Dashboard APi
+export const dashboardApi = {
+  getAll: (): Promise<AxiosResponse> =>
+    apiClient.get("/dashboard"),
+};
 
 export const userApi = {
   getAll: (): Promise<AxiosResponse> =>
@@ -34,17 +39,6 @@ export const userApi = {
   login: (email: string, password: string): Promise<AxiosResponse> =>
     apiClient.post("/login/", { email, password }),
 };
-
-
-
-
-
-
-
-
-
-
-
 
 // Medication type definition
 export interface Medication {

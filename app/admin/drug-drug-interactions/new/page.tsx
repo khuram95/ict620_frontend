@@ -17,8 +17,8 @@ export default function NewDrugDrugInteractionPage() {
     const fetchMedications = async () => {
       try {
         setLoading(true)
-        const data = await medicationApi.getAll()
-        setMedications(data)
+        const response = await medicationApi.getAll()
+        setMedications(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching medications:", err)

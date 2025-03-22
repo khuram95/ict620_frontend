@@ -4,15 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Pill, Coffee, AlertTriangle, Users, BookOpen, Calendar, ServerOff } from "lucide-react"
 import Link from "next/link"
-import {
-  medicationApi,
-  allergyApi,
-  foodItemApi,
-  referenceApi,
-  scheduleApi,
-  userApi,
-  complementaryMedicineApi,
-} from "@/lib/api-service"
+import {  dashboardApi  } from "@/lib/api-service"
 
 // Define types for our stats
 interface DashboardStats {
@@ -44,55 +36,56 @@ export default function AdminDashboard() {
       try {
         setLoading(true)
         setError(null)
+        const response = await dashboardApi.getAll()
 
         // Fetch counts from all endpoints
-        const [medications, allergies, foodItems, references, schedules, users, complementaryMedicines] =
-          await Promise.all([
-            medicationApi.getAll().catch((err) => {
-              console.error("Error fetching medications:", err)
-              setUsingMockData(true)
-              return []
-            }),
-            allergyApi.getAll().catch((err) => {
-              console.error("Error fetching allergies:", err)
-              setUsingMockData(true)
-              return []
-            }),
-            foodItemApi.getAll().catch((err) => {
-              console.error("Error fetching food items:", err)
-              setUsingMockData(true)
-              return []
-            }),
-            referenceApi.getAll().catch((err) => {
-              console.error("Error fetching references:", err)
-              setUsingMockData(true)
-              return []
-            }),
-            scheduleApi.getAll().catch((err) => {
-              console.error("Error fetching schedules:", err)
-              setUsingMockData(true)
-              return []
-            }),
-            userApi.getAll().catch((err) => {
-              console.error("Error fetching users:", err)
-              setUsingMockData(false)
-              return []
-            }),
-            complementaryMedicineApi.getAll().catch((err) => {
-              console.error("Error fetching complementary medicines:", err)
-              setUsingMockData(true)
-              return []
-            }),
-          ])
-            console.log(users)
+        // const [medications, allergies, foodItems, references, schedules, users, complementaryMedicines] =
+        //   await Promise.all([
+        //     medicationApi.getAll().catch((err) => {
+        //       console.error("Error fetching medications:", err)
+        //       setUsingMockData(true)
+        //       return []
+        //     }),
+        //     allergyApi.getAll().catch((err) => {
+        //       console.error("Error fetching allergies:", err)
+        //       setUsingMockData(true)
+        //       return []
+        //     }),
+        //     foodItemApi.getAll().catch((err) => {
+        //       console.error("Error fetching food items:", err)
+        //       setUsingMockData(true)
+        //       return []
+        //     }),
+        //     referenceApi.getAll().catch((err) => {
+        //       console.error("Error fetching references:", err)
+        //       setUsingMockData(true)
+        //       return []
+        //     }),
+        //     scheduleApi.getAll().catch((err) => {
+        //       console.error("Error fetching schedules:", err)
+        //       setUsingMockData(true)
+        //       return []
+        //     }),
+        //     userApi.getAll().catch((err) => {
+        //       console.error("Error fetching users:", err)
+        //       setUsingMockData(false)
+        //       return []
+        //     }),
+        //     complementaryMedicineApi.getAll().catch((err) => {
+        //       console.error("Error fetching complementary medicines:", err)
+        //       setUsingMockData(true)
+        //       return []
+        //     }),
+        //   ])
+        console.log(response.data)
         setStats({
-          medications: medications.length,
-          allergies: allergies.length,
-          foodItems: foodItems.length,
-          references: references.length,
-          schedules: schedules.length,
-          users: Array.isArray(users) ? users.length : users.data.length,
-          complementaryMedicines: complementaryMedicines.length,
+          medications: response.data.medications,
+          allergies: response.data.allergies,
+          foodItems: response.data.food_items,
+          references: response.data.references,
+          schedules: response.data.schedules,
+          users: response.data.users,
+          complementaryMedicines: response.data.complementary_medicines
         })
 
         setLoading(false)
