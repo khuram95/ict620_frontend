@@ -32,13 +32,9 @@ export default function DrugDrugInteractionDetailPage({ params }: { params: { id
       try {
         setLoading(true)
         // In a real implementation, this would call the API
-        // const data = await drugDrugInteractionApi.getById(params.id)
-
-        // For now, use mock data
-        const allInteractions = await drugDrugInteractionApi.getAll()
-        const interaction = allInteractions.find((i) => i.dd_interaction_id.toString() === params.id)
-
-        setInteraction(interaction || null)
+        const response = await drugDrugInteractionApi.getById(params.id)
+        console.log("Interaction details:", response.data)
+        setInteraction(Array.isArray(response.data) && response.data.length > 0 ? response.data[0] : null)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching drug-drug interaction:", err)

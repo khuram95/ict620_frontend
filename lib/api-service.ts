@@ -3,7 +3,7 @@
 import axios, { AxiosResponse } from "axios";
 
 // Define your base URL. Adjust as necessary.
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "http://localhost:8000/api";
 
 // Optionally, create an Axios instance to automatically attach authentication headers
 const apiClient = axios.create({
@@ -472,85 +472,29 @@ const mockDrugDrugInteractions: DrugDrugInteraction[] = [
   },
 ]
 
+
 export const drugDrugInteractionApi = {
-  getAll: async (): Promise<DrugDrugInteraction[]> => {
-    return mockDrugDrugInteractions
-  },
-  getById: async (id: string | number): Promise<DrugDrugInteraction | null> => {
-    const interaction = mockDrugDrugInteractions.find((i) => i.dd_interaction_id === Number(id))
-    return interaction || null
-  },
-  create: async (data: Partial<DrugDrugInteraction>): Promise<DrugDrugInteraction> => {
-    // Get medication names for the interaction
-    let medication1_name = ""
-    let medication2_name = ""
+  // Get all drug-drug interactions
+  getAll: (): Promise<AxiosResponse<DrugDrugInteraction[]>> =>
+    apiClient.get("/interactions/drug_drug/"),
 
-    if (data.medication1_id) {
-      const med1 = mockMedications.find((m) => m.medication_id === Number(data.medication1_id))
-      if (med1) medication1_name = med1.name
-    }
+  // Get drug-drug interaction by ID
+  getById: (id: string | number): Promise<AxiosResponse<DrugDrugInteraction>> =>
+    apiClient.get(`/interactions/drug_drug/${id}`),
 
-    if (data.medication2_id) {
-      const med2 = mockMedications.find((m) => m.medication_id === Number(data.medication2_id))
-      if (med2) medication2_name = med2.name
-    }
+  // Create a new drug-drug interaction
+  create: (data: Partial<DrugDrugInteraction>): Promise<AxiosResponse<DrugDrugInteraction>> =>
+    apiClient.post("/interactions/drug_drug/", data),
 
-    const newInteraction: DrugDrugInteraction = {
-      ...data,
-      dd_interaction_id: Math.floor(Math.random() * 1000) + 100,
-      medication1_id: Number(data.medication1_id) || 0,
-      medication2_id: Number(data.medication2_id) || 0,
-      severity: data.severity || null,
-      description: data.description || null,
-      recommendation: data.recommendation || null,
-      created_at: new Date().toISOString(),
-      updated_at: null,
-      medication1_name,
-      medication2_name,
-    } as DrugDrugInteraction
+  // Update an existing drug-drug interaction
+  update: (id: string | number, data: Partial<DrugDrugInteraction>): Promise<AxiosResponse<DrugDrugInteraction>> =>
+    apiClient.put(`/interactions/drug_drug/${id}`, data),
 
-    mockDrugDrugInteractions.push(newInteraction)
-    return newInteraction
-  },
-  update: async (id: string | number, data: Partial<DrugDrugInteraction>): Promise<DrugDrugInteraction> => {
-    const index = mockDrugDrugInteractions.findIndex((i) => i.dd_interaction_id === Number(id))
+  // Delete a drug-drug interaction
+  delete: (id: string | number): Promise<AxiosResponse<void>> =>
+    apiClient.delete(`/interactions/drug_drug/${id}`),
+};
 
-    if (index === -1) {
-      throw new Error(`Drug-drug interaction with ID ${id} not found`)
-    }
-
-    // Update medication names if IDs changed
-    let medication1_name = mockDrugDrugInteractions[index].medication1_name
-    let medication2_name = mockDrugDrugInteractions[index].medication2_name
-
-    if (data.medication1_id) {
-      const med1 = mockMedications.find((m) => m.medication_id === Number(data.medication1_id))
-      if (med1) medication1_name = med1.name
-    }
-
-    if (data.medication2_id) {
-      const med2 = mockMedications.find((m) => m.medication_id === Number(data.medication2_id))
-      if (med2) medication2_name = med2.name
-    }
-
-    const updatedInteraction: DrugDrugInteraction = {
-      ...mockDrugDrugInteractions[index],
-      ...data,
-      medication1_name,
-      medication2_name,
-      updated_at: new Date().toISOString(),
-    }
-
-    mockDrugDrugInteractions[index] = updatedInteraction
-    return updatedInteraction
-  },
-  delete: async (id: string | number): Promise<void> => {
-    const index = mockDrugDrugInteractions.findIndex((i) => i.dd_interaction_id === Number(id))
-    if (index !== -1) {
-      mockDrugDrugInteractions.splice(index, 1)
-    }
-  },
-}
 
 // Complementary Medicine type definition
 export interface ComplementaryMedicine {
