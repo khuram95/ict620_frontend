@@ -55,44 +55,38 @@ export default function AdminDashboard() {
             }),
             allergyApi.getAll().catch((err) => {
               console.error("Error fetching allergies:", err)
-              setUsingMockData(true)
               return []
             }),
             foodItemApi.getAll().catch((err) => {
               console.error("Error fetching food items:", err)
-              setUsingMockData(true)
               return []
             }),
             referenceApi.getAll().catch((err) => {
               console.error("Error fetching references:", err)
-              setUsingMockData(true)
               return []
             }),
             scheduleApi.getAll().catch((err) => {
               console.error("Error fetching schedules:", err)
-              setUsingMockData(true)
               return []
             }),
             userApi.getAll().catch((err) => {
               console.error("Error fetching users:", err)
-              setUsingMockData(false)
               return []
             }),
             complementaryMedicineApi.getAll().catch((err) => {
               console.error("Error fetching complementary medicines:", err)
-              setUsingMockData(true)
               return []
             }),
           ])
-            console.log(users)
+            console.log(medications)
         setStats({
-          medications: medications.length,
-          allergies: allergies.length,
-          foodItems: foodItems.length,
-          references: references.length,
-          schedules: schedules.length,
+          medications: Array.isArray(medications) ? medications.length : medications.data.length,
+          allergies: Array.isArray(allergies) ? allergies.length : allergies.data.length,
+          foodItems: Array.isArray(foodItems) ? foodItems.length : foodItems.data.length,
+          references: Array.isArray(references) ? references.length : references.data.length,
+          schedules: Array.isArray(schedules) ? schedules.length : schedules.data.length,
           users: Array.isArray(users) ? users.length : users.data.length,
-          complementaryMedicines: complementaryMedicines.length,
+          complementaryMedicines: Array.isArray(complementaryMedicines) ? complementaryMedicines.length : complementaryMedicines.data.length,
         })
 
         setLoading(false)
