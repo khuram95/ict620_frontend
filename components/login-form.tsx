@@ -52,7 +52,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Pharmacy Student Login</CardTitle>
+        <CardTitle className="text-2xl text-center">Login</CardTitle>
         <CardDescription className="text-center">
           Enter your credentials to access the interactions checker
         </CardDescription>
