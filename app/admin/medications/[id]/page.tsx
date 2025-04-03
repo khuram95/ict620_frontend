@@ -19,19 +19,41 @@ import { toast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import { medicationApi, type Medication } from "@/lib/api-service"
 
+// Define the adverse effects JSON structure
+interface AdverseEffects {
+  common?: string
+  uncommon?: string
+  rare?: string
+  veryRare?: string
+  frequency_not_known?: string
+  [key: string]: string | undefined
+}
+
 export default function MedicationDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [medication, setMedication] = useState<Medication | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [adverseEffects, setAdverseEffects] = useState<AdverseEffects | null>(null)
 
   useEffect(() => {
     const fetchMedication = async () => {
       try {
         setLoading(true)
-        const response = await medicationApi.getById(params.id)
-        setMedication(response.data)
+        const res = await medicationApi.getById(params.id)
+        setMedication(res.data)
+        // Parse adverse_effect if it's a JSON string
+        if (res.data?.adverse_effect) {
+          try {
+            const parsedEffects = JSON.parse(res.data.adverse_effect)
+            setAdverseEffects(parsedEffects)
+          } catch (e) {
+            // If parsing fails, treat it as a regular string
+            setAdverseEffects({ common: res.data.adverse_effect })
+          }
+        }
+
         setLoading(false)
       } catch (err) {
         console.error("Error fetching medication:", err)
@@ -61,6 +83,22 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
         variant: "destructive",
       })
     }
+  }
+
+  // Helper function to render adverse effects
+  const renderAdverseEffects = () => {
+    if (!adverseEffects) return "No adverse effects information available"
+
+    return (
+      <div className="space-y-4">
+        {Object.entries(adverseEffects).map(([key, value]) => (
+          <div key={key} className="space-y-1">
+            <h4 className="font-medium capitalize">{key.replace(/_/g, " ")}:</h4>
+            <p className="text-gray-700">{value}</p>
+          </div>
+        ))}
+      </div>
+    )
   }
 
   if (loading) {
@@ -171,9 +209,7 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
           <CardHeader>
             <CardTitle>Adverse Effects</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p>{medication.adverse_effect || "No adverse effects information available"}</p>
-          </CardContent>
+          <CardContent>{renderAdverseEffects()}</CardContent>
         </Card>
 
         <Card className="md:col-span-2">
