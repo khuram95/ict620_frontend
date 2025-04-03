@@ -11,10 +11,11 @@ import { Button } from "@/components/ui/button"
 import axios from "axios"
 
 interface InteractionPanelProps {
-  medications: Array<{ name: string; id: string }>
+  medications: Array<{ name: string; id: string; type?: "drug" | "food" | "comp" }>
   isLoading?: boolean
   shouldCheck: boolean
   onCheckComplete: () => void
+  activeTab: string
 }
 
 interface ReportSummary {
@@ -52,6 +53,7 @@ export default function InteractionPanel({
   isLoading = false,
   shouldCheck,
   onCheckComplete,
+  activeTab,
 }: InteractionPanelProps) {
   const [interactionData, setInteractionData] = useState<InteractionResponse | null>(null)
   const [interactionLoading, setInteractionLoading] = useState(false)
@@ -75,7 +77,7 @@ export default function InteractionPanel({
       const drugList = medications.map((med) => med.id).join(",")
 
       // Use axios to call the API that returns JSON content
-      const response = await axios.get(`http://127.0.0.1:5000/api/check_interactions`, {
+      const response = await axios.get(`http://127.0.0.1:8000/api/check_interactions`, {
         params: {
           drug_list: drugList,
           professional: 1,
@@ -163,17 +165,43 @@ export default function InteractionPanel({
     return title.toLowerCase().includes("food")
   }
 
+  // Update the title based on active tab
+  const getTitle = () => {
+    switch (activeTab) {
+      case "drug-drug":
+        return "Drug-Drug Interaction Results"
+      case "drug-food":
+        return "Drug-Food Interaction Results"
+      case "drug-comp":
+        return "Drug-Complementary Medicine Interaction Results"
+      default:
+        return "Interaction Results"
+    }
+  }
+
+  // Update the empty state message based on active tab
+  const getEmptyStateMessage = () => {
+    switch (activeTab) {
+      case "drug-drug":
+        return "Select two or more drugs from the left panel to check for potential interactions"
+      case "drug-food":
+        return "Select a drug and a food item from the left panel to check for potential interactions"
+      case "drug-comp":
+        return "Select a drug and a complementary medicine from the left panel to check for potential interactions"
+      default:
+        return "Select two or more items from the left panel to check for potential interactions"
+    }
+  }
+
   if (medications.length < 2) {
     return (
       <div className="h-full flex flex-col">
-        <h2 className="text-xl font-semibold mb-4">Interaction Results</h2>
+        <h2 className="text-xl font-semibold mb-4">{getTitle()}</h2>
         <div className="flex-grow flex items-center justify-center">
           <Card className="w-full max-w-md">
             <CardHeader>
-              <CardTitle className="text-center">Select Medications</CardTitle>
-              <CardDescription className="text-center">
-                Select two or more items from the left panel to check for potential interactions
-              </CardDescription>
+              <CardTitle className="text-center">Select Items</CardTitle>
+              <CardDescription className="text-center">{getEmptyStateMessage()}</CardDescription>
             </CardHeader>
           </Card>
         </div>
@@ -185,7 +213,7 @@ export default function InteractionPanel({
   if (interactionLoading || isLoading) {
     return (
       <div className="h-full flex flex-col">
-        <h2 className="text-xl font-semibold mb-4">Interaction Results</h2>
+        <h2 className="text-xl font-semibold mb-4">{getTitle()}</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           {medications.map((med, index) => (
@@ -217,7 +245,7 @@ export default function InteractionPanel({
   if (error) {
     return (
       <div className="h-full flex flex-col">
-        <h2 className="text-xl font-semibold mb-4">Interaction Results</h2>
+        <h2 className="text-xl font-semibold mb-4">{getTitle()}</h2>
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
@@ -236,7 +264,7 @@ export default function InteractionPanel({
   if (!interactionData && !shouldCheck) {
     return (
       <div className="h-full flex flex-col">
-        <h2 className="text-xl font-semibold mb-4">Interaction Results</h2>
+        <h2 className="text-xl font-semibold mb-4">{getTitle()}</h2>
         <Card className="w-full">
           <CardContent className="pt-6 text-center">
             <Info className="h-12 w-12 text-blue-500 mx-auto mb-4" />
@@ -255,7 +283,7 @@ export default function InteractionPanel({
   if (!interactionData && shouldCheck) {
     return (
       <div className="h-full flex flex-col">
-        <h2 className="text-xl font-semibold mb-4">Interaction Results</h2>
+        <h2 className="text-xl font-semibold mb-4">{getTitle()}</h2>
         <Card className="w-full">
           <CardContent className="pt-6 text-center">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
@@ -309,7 +337,7 @@ export default function InteractionPanel({
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className="text-xl font-semibold mb-4">Interaction Results</h2>
+      <h2 className="text-xl font-semibold mb-4">{getTitle()}</h2>
 
       <div className="mb-4">
         <h3 className="text-lg font-medium mb-2">Selected Medications</h3>

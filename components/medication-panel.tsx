@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Search, X, Plus, Check } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { CustomPagination } from "@/components/ui/custom-pagination"
 
 interface DrugSuggestion {
   suggestion: string
@@ -15,24 +16,47 @@ interface DrugSuggestion {
 }
 
 interface MedicationPanelProps {
-  onSelectMedication: (medication: string, drugId: string) => void
-  selectedMedications: Array<{ name: string; id: string }>
+  title: string
+  activeTab: string
+  onSelectMedication: (medication: string, drugId: string, type?: "drug" | "food" | "comp") => void
+  selectedMedications: Array<{ name: string; id: string; type?: "drug" | "food" | "comp" }>
   onCheckInteractions: () => void
   onRemoveMedication: (index: number) => void
 }
 
 export default function MedicationPanel({
+  title,
+  activeTab,
   onSelectMedication,
   selectedMedications,
   onCheckInteractions,
   onRemoveMedication,
 }: MedicationPanelProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [suggestions, setSuggestions] = useState<DrugSuggestion[]>([])
+  const [drugSearchTerm, setDrugSearchTerm] = useState("")
+  const [secondarySearchTerm, setSecondarySearchTerm] = useState("")
+  const [drugSuggestions, setDrugSuggestions] = useState<DrugSuggestion[]>([])
+  const [secondarySuggestions, setSecondarySuggestions] = useState<DrugSuggestion[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedDrug, setSelectedDrug] = useState<DrugSuggestion | null>(null)
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const suggestionsRef = useRef<HTMLDivElement>(null)
+  const [selectedSecondary, setSelectedSecondary] = useState<DrugSuggestion | null>(null)
+  const [showDrugSuggestions, setShowDrugSuggestions] = useState(false)
+  const [showSecondarySuggestions, setShowSecondarySuggestions] = useState(false)
+  const drugSuggestionsRef = useRef<HTMLDivElement>(null)
+  const secondarySuggestionsRef = useRef<HTMLDivElement>(null)
+  const [currentDrugPage, setCurrentDrugPage] = useState(1)
+  const [currentSecondaryPage, setCurrentSecondaryPage] = useState(1)
+  const itemsPerPage = 5
+
+  const totalDrugPages = Math.ceil(drugSuggestions.length / itemsPerPage)
+  const totalSecondaryPages = Math.ceil(secondarySuggestions.length / itemsPerPage)
+
+  const handleDrugPageChange = (page: number) => {
+    setCurrentDrugPage(page)
+  }
+
+  const handleSecondaryPageChange = (page: number) => {
+    setCurrentSecondaryPage(page)
+  }
 
   // Add a comprehensive helper function to decode URL-encoded strings
   function decodeHtmlEntities(text: string): string {
@@ -84,52 +108,98 @@ export default function MedicationPanel({
 
   // Fetch drug suggestions from the API
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (searchTerm.length < 2) {
-        setSuggestions([])
+    const fetchDrugSuggestions = async () => {
+      if (drugSearchTerm.length < 2) {
+        setDrugSuggestions([])
         return
       }
 
       setLoading(true)
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/api/autocomplete?search_params=${encodeURIComponent(searchTerm)}`,
+          `http://127.0.0.1:8000/api/autocomplete?search_params=${encodeURIComponent(drugSearchTerm)}`,
         )
 
         const data = await response.json()
 
         if (data.categories && data.categories.length > 0) {
-          // Decode the suggestion text before setting it
           const decodedResults =
             data.categories[0].results?.map((result: DrugSuggestion) => ({
               ...result,
               suggestion: decodeHtmlEntities(result.suggestion),
               additional: decodeHtmlEntities(result.additional),
             })) || []
-          setSuggestions(decodedResults)
+          setDrugSuggestions(decodedResults)
         } else {
-          setSuggestions([])
+          setDrugSuggestions([])
         }
       } catch (error) {
         console.error("Error fetching drug suggestions:", error)
-        setSuggestions([])
+        setDrugSuggestions([])
       } finally {
         setLoading(false)
       }
     }
 
     const timeoutId = setTimeout(() => {
-      fetchSuggestions()
+      fetchDrugSuggestions()
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [searchTerm])
+  }, [drugSearchTerm])
+
+  // Fetch secondary suggestions (food or complementary medicine)
+  useEffect(() => {
+    const fetchSecondarySuggestions = async () => {
+      if (secondarySearchTerm.length < 2) {
+        setSecondarySuggestions([])
+        return
+      }
+
+      setLoading(true)
+      try {
+        // In a real implementation, this would call a different API endpoint based on activeTab
+        // For now, we'll use the same endpoint for demonstration
+        const response = await fetch(
+          `http://127.0.0.1:5000/api/autocomplete?search_params=${encodeURIComponent(secondarySearchTerm)}`,
+        )
+
+        const data = await response.json()
+
+        if (data.categories && data.categories.length > 0) {
+          const decodedResults =
+            data.categories[0].results?.map((result: DrugSuggestion) => ({
+              ...result,
+              suggestion: decodeHtmlEntities(result.suggestion),
+              additional: decodeHtmlEntities(result.additional),
+            })) || []
+          setSecondarySuggestions(decodedResults)
+        } else {
+          setSecondarySuggestions([])
+        }
+      } catch (error) {
+        console.error("Error fetching secondary suggestions:", error)
+        setSecondarySuggestions([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    const timeoutId = setTimeout(() => {
+      fetchSecondarySuggestions()
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [secondarySearchTerm, activeTab])
 
   // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false)
+      if (drugSuggestionsRef.current && !drugSuggestionsRef.current.contains(event.target as Node)) {
+        setShowDrugSuggestions(false)
+      }
+      if (secondarySuggestionsRef.current && !secondarySuggestionsRef.current.contains(event.target as Node)) {
+        setShowSecondarySuggestions(false)
       }
     }
 
@@ -137,41 +207,115 @@ export default function MedicationPanel({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const handleSearchFocus = () => {
-    if (searchTerm.length >= 2) {
-      setShowSuggestions(true)
+  const handleDrugSearchFocus = () => {
+    if (drugSearchTerm.length >= 2) {
+      setShowDrugSuggestions(true)
     }
   }
 
-  const handleSuggestionClick = (suggestion: DrugSuggestion) => {
-    setSelectedDrug(suggestion)
-    setSearchTerm(suggestion.suggestion)
-    setShowSuggestions(false)
+  const handleSecondarySearchFocus = () => {
+    if (secondarySearchTerm.length >= 2) {
+      setShowSecondarySuggestions(true)
+    }
   }
 
-  const handleAddDrug = () => {
-    if (selectedDrug) {
+  const handleDrugSuggestionClick = (suggestion: DrugSuggestion) => {
+    setSelectedDrug(suggestion)
+    setDrugSearchTerm(suggestion.suggestion)
+    setShowDrugSuggestions(false)
+  }
+
+  const handleSecondarySuggestionClick = (suggestion: DrugSuggestion) => {
+    setSelectedSecondary(suggestion)
+    setSecondarySearchTerm(suggestion.suggestion)
+    setShowSecondarySuggestions(false)
+  }
+
+  const handleAddItem = () => {
+    if (activeTab === "drug-drug" && selectedDrug) {
       const drugId = `${selectedDrug.ddc_id}-${selectedDrug.brand_name_id}`
-      onSelectMedication(selectedDrug.suggestion, drugId)
-      setSearchTerm("")
+      onSelectMedication(selectedDrug.suggestion, drugId, "drug")
+      setDrugSearchTerm("")
       setSelectedDrug(null)
+    } else if ((activeTab === "drug-food" || activeTab === "drug-comp") && selectedDrug && selectedSecondary) {
+      // Add drug
+      const drugId = `${selectedDrug.ddc_id}-${selectedDrug.brand_name_id}`
+      onSelectMedication(selectedDrug.suggestion, drugId, "drug")
+
+      // Add food or complementary medicine
+      const secondaryId = `${selectedSecondary.ddc_id}-${selectedSecondary.brand_name_id}`
+      const type = activeTab === "drug-food" ? "food" : "comp"
+      onSelectMedication(selectedSecondary.suggestion, secondaryId, type)
+
+      // Clear selections
+      setDrugSearchTerm("")
+      setSecondarySearchTerm("")
+      setSelectedDrug(null)
+      setSelectedSecondary(null)
+    }
+  }
+
+  // Get the secondary search label based on active tab
+  const getSecondarySearchLabel = () => {
+    switch (activeTab) {
+      case "drug-food":
+        return "Food"
+      case "drug-comp":
+        return "Complementary Medicine"
+      default:
+        return "Secondary"
+    }
+  }
+
+  // Get the instruction text based on active tab
+  const getInstructionText = () => {
+    switch (activeTab) {
+      case "drug-drug":
+        return "Search for medications using the search box above. Results will appear as you type."
+      case "drug-food":
+        return "Search for Drug & Food using the search boxes above. Results will appear as you type."
+      case "drug-comp":
+        return "Search for Drug & Complementary Medicine using the search boxes above. Results will appear as you type."
+      default:
+        return "Search for items using the search boxes above. Results will appear as you type."
+    }
+  }
+
+  // Determine if the Add button should be enabled
+  const isAddButtonEnabled = () => {
+    if (activeTab === "drug-drug") {
+      return !!selectedDrug
+    } else {
+      return !!selectedDrug && !!selectedSecondary
     }
   }
 
   return (
     <div className="h-full flex flex-col">
-      <h2 className="text-xl font-semibold mb-4">Select Medications</h2>
+      <h2 className="text-xl font-semibold mb-4">{title}</h2>
 
       <div className="flex flex-wrap gap-2 mb-4">
         {selectedMedications.map((med, index) => (
           <Badge
             key={index}
             variant="default"
-            className="px-3 py-2 flex items-center gap-1 bg-teal-100 text-teal-800 border border-teal-200 hover:bg-teal-50"
+            className={`px-3 py-2 flex items-center gap-1 ${
+              med.type === "food"
+                ? "bg-green-100 text-green-800 border border-green-200 hover:bg-green-50"
+                : med.type === "comp"
+                  ? "bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-50"
+                  : "bg-teal-100 text-teal-800 border border-teal-200 hover:bg-teal-50"
+            }`}
           >
             <span className="font-medium">{med.name}</span>
             <button
-              className="ml-2 rounded-full hover:bg-teal-200 p-1 transition-colors"
+              className={`ml-2 rounded-full p-1 transition-colors ${
+                med.type === "food"
+                  ? "hover:bg-green-200"
+                  : med.type === "comp"
+                    ? "hover:bg-amber-200"
+                    : "hover:bg-teal-200"
+              }`}
               onClick={() => onRemoveMedication(index)}
               aria-label={`Remove ${med.name}`}
             >
@@ -181,60 +325,149 @@ export default function MedicationPanel({
         ))}
 
         {selectedMedications.length === 0 && (
-          <p className="text-gray-500 italic">
-            No medications selected. Search and add medications to check interactions.
-          </p>
+          <p className="text-gray-500 italic">No items selected. Search and add items to check interactions.</p>
         )}
       </div>
 
-      <div className="relative mb-4">
-        <div className="flex gap-2">
-          <div className="relative flex-grow">
+      <div className="space-y-4 mb-4">
+        {/* Drug search input */}
+        <div className="relative">
+          <label htmlFor="drug-search" className="block text-sm font-medium text-gray-700 mb-1">
+            Drug
+          </label>
+          <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search medications..."
+              id="drug-search"
+              placeholder="Search drugs..."
               className="pl-8"
-              value={searchTerm}
+              value={drugSearchTerm}
               onChange={(e) => {
-                setSearchTerm(e.target.value)
+                setDrugSearchTerm(e.target.value)
                 if (e.target.value.length >= 2) {
-                  setShowSuggestions(true)
+                  setShowDrugSuggestions(true)
                 } else {
-                  setShowSuggestions(false)
+                  setShowDrugSuggestions(false)
                 }
               }}
-              onFocus={handleSearchFocus}
+              onFocus={handleDrugSearchFocus}
             />
 
-            {/* Suggestions dropdown */}
-            {showSuggestions && (
+            {/* Drug suggestions dropdown */}
+            {showDrugSuggestions && (
               <div
-                ref={suggestionsRef}
+                ref={drugSuggestionsRef}
                 className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
               >
                 {loading ? (
                   <div className="p-2 text-center text-gray-500">Loading...</div>
-                ) : suggestions.length > 0 ? (
-                  suggestions.map((suggestion, index) => (
-                    <div
-                      key={index}
-                      className="p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                    >
-                      <div className="font-medium">{suggestion.suggestion}</div>
-                      <div className="text-xs text-gray-500">{suggestion.additional}</div>
-                    </div>
-                  ))
-                ) : searchTerm.length >= 2 ? (
+                ) : drugSuggestions.length > 0 ? (
+                  drugSuggestions
+                    .slice((currentDrugPage - 1) * itemsPerPage, currentDrugPage * itemsPerPage)
+                    .map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0"
+                        onClick={() => handleDrugSuggestionClick(suggestion)}
+                      >
+                        <div className="font-medium">{suggestion.suggestion}</div>
+                        <div className="text-xs text-gray-500">{suggestion.additional}</div>
+                      </div>
+                    ))
+                ) : drugSearchTerm.length >= 2 ? (
                   <div className="p-2 text-center text-gray-500">No results found</div>
                 ) : null}
+                {/* Pagination for drug suggestions */}
+                {drugSuggestions.length > itemsPerPage && (
+                  <div className="p-2 border-t border-gray-100">
+                    <CustomPagination
+                      currentPage={currentDrugPage}
+                      totalPages={totalDrugPages}
+                      onPageChange={handleDrugPageChange}
+                      totalItems={drugSuggestions.length}
+                      itemsPerPage={itemsPerPage}
+                      showItemCount={false}
+                      className="justify-center"
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
+        </div>
 
+        {/* Secondary search input (food or complementary medicine) */}
+        {(activeTab === "drug-food" || activeTab === "drug-comp") && (
+          <div className="relative">
+            <label htmlFor="secondary-search" className="block text-sm font-medium text-gray-700 mb-1">
+              {getSecondarySearchLabel()}
+            </label>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                id="secondary-search"
+                placeholder={`Search ${getSecondarySearchLabel().toLowerCase()}...`}
+                className="pl-8"
+                value={secondarySearchTerm}
+                onChange={(e) => {
+                  setSecondarySearchTerm(e.target.value)
+                  if (e.target.value.length >= 2) {
+                    setShowSecondarySuggestions(true)
+                  } else {
+                    setShowSecondarySuggestions(false)
+                  }
+                }}
+                onFocus={handleSecondarySearchFocus}
+              />
+
+              {/* Secondary suggestions dropdown */}
+              {showSecondarySuggestions && (
+                <div
+                  ref={secondarySuggestionsRef}
+                  className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
+                >
+                  {loading ? (
+                    <div className="p-2 text-center text-gray-500">Loading...</div>
+                  ) : secondarySuggestions.length > 0 ? (
+                    secondarySuggestions
+                      .slice((currentSecondaryPage - 1) * itemsPerPage, currentSecondaryPage * itemsPerPage)
+                      .map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className="p-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-0"
+                          onClick={() => handleSecondarySuggestionClick(suggestion)}
+                        >
+                          <div className="font-medium">{suggestion.suggestion}</div>
+                          <div className="text-xs text-gray-500">{suggestion.additional}</div>
+                        </div>
+                      ))
+                  ) : secondarySearchTerm.length >= 2 ? (
+                    <div className="p-2 text-center text-gray-500">No results found</div>
+                  ) : null}
+                  {/* Pagination for secondary suggestions */}
+                  {secondarySuggestions.length > itemsPerPage && (
+                    <div className="p-2 border-t border-gray-100">
+                      <CustomPagination
+                        currentPage={currentSecondaryPage}
+                        totalPages={totalSecondaryPages}
+                        onPageChange={handleSecondaryPageChange}
+                        totalItems={secondarySuggestions.length}
+                        itemsPerPage={itemsPerPage}
+                        showItemCount={false}
+                        className="justify-center"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end">
           <Button
-            disabled={!selectedDrug}
-            onClick={handleAddDrug}
+            disabled={!isAddButtonEnabled()}
+            onClick={handleAddItem}
             className="h-10 bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-2 px-4"
           >
             <Plus className="h-4 w-4" /> Add
@@ -251,12 +484,9 @@ export default function MedicationPanel({
       <div className="flex-grow overflow-auto">
         <Card className="bg-gray-50 border-dashed">
           <CardContent className="p-4">
-            <p className="text-center text-gray-500">
-              Search for medications using the search box above. Results will appear as you type.
-            </p>
+            <p className="text-center text-gray-500">{getInstructionText()}</p>
             <p className="text-center text-gray-500 mt-2">
-              Select medications to add them to your list, then click "Check Interactions" to view potential
-              interactions.
+              Select items to add them to your list, then click "Check Interactions" to view potential interactions.
             </p>
             <div className="mt-4 text-center">
               <img
