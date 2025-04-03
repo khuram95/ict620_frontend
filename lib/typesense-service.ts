@@ -37,6 +37,54 @@ export const searchMedications = async (query: string) => {
   }
 }
 
+// Function to search FoodItems
+export const searchFoodItems = async (query: string) => {
+  if (!query) return []
+
+  try {
+    const searchResults = await typesenseClient
+      .collections("food_items")
+      .documents()
+      .search({
+        q: query,
+        query_by: "name",
+        limit: 10,
+      })
+
+    return searchResults.hits ? searchResults.hits.map((hit: any) => ({
+      value: hit.document.food_id.toString(),
+      label: hit.document.name,
+    })) : [];
+  } catch (error) {
+    console.error("Typesense search error:", error)
+    return []
+  }
+}
+
+// Function to search ComplementaryMedicines
+export const searchComplementaryMedicines = async (query: string) => {
+  if (!query) return []
+
+  try {
+    const searchResults = await typesenseClient
+      .collections("complementary_medicines")
+      .documents()
+      .search({
+        q: query,
+        query_by: "name",
+        limit: 10,
+      })
+
+    return searchResults.hits ? searchResults.hits.map((hit: any) => ({
+      value: hit.document.compl_med_id.toString(),
+      label: hit.document.name,
+    })) : [];
+  } catch (error) {
+    console.error("Typesense search error:", error)
+    return []
+  }
+}
+
 export interface OptionType {
   value: string;
   label: string;
