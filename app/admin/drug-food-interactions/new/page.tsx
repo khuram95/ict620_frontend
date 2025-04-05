@@ -12,9 +12,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
-import SearchBox from "@/components/ui/medication-search-box"
-// import FoodItemSearchBox from "@/components/ui/food-item-search-box"
+import MedicationSearchBox from "@/components/ui/medication-search-box"
+import FooditemSearchBox from "@/components/ui/fooditem-search-box"
 import SeveritySelectBox from "@/components/ui/severity-select-box"
+import { drugFoodInteractionApi, type DrugFoodInteraction } from "@/lib/api-service"
 
 export default function NewDrugFoodInteractionPage() {
   const router = useRouter()
@@ -102,7 +103,7 @@ export default function NewDrugFoodInteractionPage() {
 
     try {
       // In a real implementation, this would call the API
-      await drugFoodInteractionApi.create(data)
+      await drugFoodInteractionApi.create(formData)
 
       toast({
         title: "Interaction created",
@@ -166,7 +167,7 @@ export default function NewDrugFoodInteractionPage() {
               {/* Medication */}
               <div>
                 <div className="space-y-2">
-                  <SearchBox
+                  <MedicationSearchBox
                     name="medication_id"
                     label="Medication"
                     onChange={(selected) => handleChange("medication_id", selected ? selected.value : "")}
@@ -178,7 +179,7 @@ export default function NewDrugFoodInteractionPage() {
               {/* Food Item */}
               <div>
                 <div className="space-y-2">
-                  <SearchBox
+                  <FooditemSearchBox
                     name="food_id"
                     label="Food Item"
                     onChange={(selected) => handleChange("food_id", selected ? selected.value : "")}
