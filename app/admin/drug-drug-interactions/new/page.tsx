@@ -145,7 +145,7 @@ export default function NewDrugDrugInteractionPage() {
                     cacheOptions
                     name="severity"
                     isClearable
-                    placeholder="Select severity..."
+                    placeholder="Select severity...(e.g Major, Moderate, Minor)"
                     onChange={(selected) => handleChange("severity", selected ? selected.value : "")}
                     loadOptions={async (inputValue) => {
                       const options = [

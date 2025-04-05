@@ -126,9 +126,6 @@ export default function FormBuilder({
     const error = errors[name]
 
     switch (type) {
-      case "text":
-      case "email":
-      case "password":
       case "custom":
         // If a custom render function was provided, call it here.
       // Pass it the current value, onChange, and any relevant props.
@@ -146,7 +143,9 @@ export default function FormBuilder({
           {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
       ) : null
-
+      case "text":
+      case "email":
+      case "password":
       case "number":
       case "date":
         return (

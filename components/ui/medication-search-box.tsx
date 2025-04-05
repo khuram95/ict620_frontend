@@ -43,6 +43,7 @@ const MedicationSearchBox: React.FC<MedicationSearchBoxProps> = ({
         defaultOptions={defaultValue ? [defaultValue] : []}
         loadOptions={loadOptions}
         defaultValue={defaultValue}
+        placeholder={"Search  Medicine"}
         onChange={onChange}
         name={name}
         isClearable
