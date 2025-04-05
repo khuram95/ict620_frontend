@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "@/components/ui/use-toast"
-import { foodItemApi, type FoodItem } from "@/lib/api-service"
+import { drugFoodInteractionApi, type DrugFoodInteraction } from "@/lib/api-service"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,14 +15,13 @@ import Link from "next/link"
 import MedicationSearchBox from "@/components/ui/medication-search-box"
 import FooditemSearchBox from "@/components/ui/fooditem-search-box"
 import SeveritySelectBox from "@/components/ui/severity-select-box"
-import { drugFoodInteractionApi, type DrugFoodInteraction } from "@/lib/api-service"
 
-export default function NewDrugFoodInteractionPage() {
+export default function EditDrugFoodInteractionPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [saving, setSaving] = useState(false)
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([])
+  const [interaction, setInteraction] = useState<DrugFoodInteraction | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState<Record<string, any>>({
     medication_id: "",
     food_id: "",
@@ -33,24 +32,31 @@ export default function NewDrugFoodInteractionPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInteraction = async () => {
       try {
         setLoading(true)
-        const foodData = await foodItemApi.getAll()
+        const data = await drugFoodInteractionApi.getById(params.id)
+        setInteraction(data)
 
-        // Check if foodData has a data property (API response structure)
-        const foodItems = foodData.data || foodData
-        setFoodItems(foodItems)
+        // Initialize form data
+        setFormData({
+          medication_id: data.medication_id.toString(),
+          food_id: data.food_id.toString(),
+          severity: data.severity || "",
+          description: data.description || "",
+          recommendation: data.recommendation || "",
+        })
+
         setLoading(false)
       } catch (err) {
-        console.error("Error fetching food items:", err)
-        setError("Failed to load food items. Please try again later.")
+        console.error("Error fetching drug-food interaction:", err)
+        setError("Failed to load drug-food interaction details. Please try again later.")
         setLoading(false)
       }
     }
 
-    fetchData()
-  }, [])
+    fetchInteraction()
+  }, [params.id])
 
   const handleChange = (name: string, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -102,20 +108,19 @@ export default function NewDrugFoodInteractionPage() {
     setSaving(true)
 
     try {
-      // In a real implementation, this would call the API
-      await drugFoodInteractionApi.create(formData)
+      await drugFoodInteractionApi.update(params.id, formData)
 
       toast({
-        title: "Interaction created",
-        description: "The interaction has been created successfully.",
+        title: "Interaction updated",
+        description: "The interaction has been updated successfully.",
       })
 
       router.push("/admin/drug-food-interactions")
     } catch (error) {
-      console.error("Error creating interaction:", error)
+      console.error("Error updating interaction:", error)
       toast({
         title: "Error",
-        description: "An error occurred while creating the interaction.",
+        description: "An error occurred while updating the interaction.",
         variant: "destructive",
       })
     } finally {
@@ -123,19 +128,14 @@ export default function NewDrugFoodInteractionPage() {
     }
   }
 
-  // const foodOptions = foodItems.map((food) => ({
-  //   value: food.food_id.toString(),
-  //   label: food.name,
-  // }))
-
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading data...</div>
+    return <div className="flex justify-center items-center h-64">Loading interaction details...</div>
   }
 
   if (error) {
     return (
       <div className="p-8">
-        <h1 className="text-2xl font-bold mb-4">Add New Drug-Food Interaction</h1>
+        <h1 className="text-2xl font-bold mb-4">Edit Drug-Food Interaction</h1>
         <div className="bg-red-50 border border-red-200 rounded-md p-4 text-red-700">
           <h2 className="text-lg font-semibold mb-2">Error</h2>
           <p>{error}</p>
@@ -150,10 +150,27 @@ export default function NewDrugFoodInteractionPage() {
     )
   }
 
+  if (!interaction) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold mb-4">Interaction Not Found</h1>
+        <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-700">
+          <p>The requested drug-food interaction could not be found.</p>
+          <button
+            onClick={() => router.push("/admin/drug-food-interactions")}
+            className="mt-4 px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
+          >
+            Back to Drug-Food Interactions
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Add New Drug-Food Interaction</h1>
+        <h1 className="text-2xl font-bold">Edit Drug-Food Interaction</h1>
         <Link href="/admin/drug-food-interactions" className="flex items-center text-gray-600 hover:text-gray-900">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
@@ -170,6 +187,11 @@ export default function NewDrugFoodInteractionPage() {
                   <MedicationSearchBox
                     name="medication_id"
                     label="Medication"
+                    // defaultValue={
+                    //   interaction.medication_name
+                    //     ? { value: formData.medication_id, label: interaction.medication_name }
+                    //     : null
+                    // }x
                     onChange={(selected) => handleChange("medication_id", selected ? selected.value : "")}
                   />
                   {errors.medication_id && <p className="text-sm text-red-500">{errors.medication_id}</p>}
@@ -182,6 +204,9 @@ export default function NewDrugFoodInteractionPage() {
                   <FooditemSearchBox
                     name="food_id"
                     label="Food Item"
+                    // defaultValue={
+                    //   interaction.food_name ? { value: formData.food_id, label: interaction.food_name } : null
+                    // }
                     onChange={(selected) => handleChange("food_id", selected ? selected.value : "")}
                   />
                   {errors.food_id && <p className="text-sm text-red-500">{errors.food_id}</p>}
@@ -194,6 +219,9 @@ export default function NewDrugFoodInteractionPage() {
                   <SeveritySelectBox
                     name="severity"
                     label="Severity"
+                    defaultValue={
+                      interaction.severity ? { value: interaction.severity, label: interaction.severity } : null
+                    }
                     onChange={(selected) => handleChange("severity", selected ? selected.value : "")}
                   />
                   {errors.severity && <p className="text-sm text-red-500">{errors.severity}</p>}

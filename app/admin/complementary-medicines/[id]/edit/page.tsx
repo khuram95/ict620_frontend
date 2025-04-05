@@ -67,27 +67,27 @@ export default function EditComplementaryMedicinePage({ params }: { params: { id
       type: "textarea" as const,
       required: true,
     },
-    {
-      name: "evidence_level",
-      label: "Evidence Level",
-      type: "select" as const,
-      options: [
-        { value: "high", label: "High" },
-        { value: "moderate", label: "Moderate" },
-        { value: "low", label: "Low" },
-        { value: "insufficient", label: "Insufficient" },
-      ],
-    },
-    {
-      name: "common_uses",
-      label: "Common Uses",
-      type: "textarea" as const,
-    },
-    {
-      name: "safety_concerns",
-      label: "Safety Concerns",
-      type: "textarea" as const,
-    },
+    // {
+    //   name: "evidence_level",
+    //   label: "Evidence Level",
+    //   type: "select" as const,
+    //   options: [
+    //     { value: "high", label: "High" },
+    //     { value: "moderate", label: "Moderate" },
+    //     { value: "low", label: "Low" },
+    //     { value: "insufficient", label: "Insufficient" },
+    //   ],
+    // },
+    // {
+    //   name: "common_uses",
+    //   label: "Common Uses",
+    //   type: "textarea" as const,
+    // },
+    // {
+    //   name: "safety_concerns",
+    //   label: "Safety Concerns",
+    //   type: "textarea" as const,
+    // },
   ]
 
   if (loading) {

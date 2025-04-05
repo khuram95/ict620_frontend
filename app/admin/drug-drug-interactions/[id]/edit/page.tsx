@@ -1,84 +1,131 @@
-"use client"
+// EditDrugDrugInteractionPage.tsx
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import FormBuilder from "@/components/admin/form-builder"
-import { toast } from "@/components/ui/use-toast"
-import { drugDrugInteractionApi, medicationApi, type DrugDrugInteraction, type Medication } from "@/lib/api-service"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import FormBuilder from "@/components/admin/form-builder";
+import { toast } from "@/components/ui/use-toast";
+import {
+  drugDrugInteractionApi,
+  type DrugDrugInteraction,
+} from "@/lib/api-service";
+import MedicationSearchBox, {
+  OptionType,
+} from "../../../../../components/ui/medication-search-box";
+import { getMedicationById } from "../../../../../lib/typesense-service";
 
-export default function EditDrugDrugInteractionPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const [interaction, setInteraction] = useState<DrugDrugInteraction | null>(null)
-  const [medications, setMedications] = useState<Medication[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
+export default function EditDrugDrugInteractionPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const router = useRouter();
+  const [interaction, setInteraction] = useState<DrugDrugInteraction | null>(
+    null
+  );
+  const [defaultMed1, setDefaultMed1] = useState<OptionType | null>(null);
+  const [defaultMed2, setDefaultMed2] = useState<OptionType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
-        const [interactionData, medsData] = await Promise.all([
-          drugDrugInteractionApi.getById(params.id),
-          medicationApi.getAll(),
-        ])
+        setLoading(true);
 
-        setInteraction(interactionData)
-        setMedications(medsData)
-        setLoading(false)
+        const interactionData = await drugDrugInteractionApi.getById(params.id);
+        const raw = interactionData.data;
+        const interactionRecord = Array.isArray(raw) ? raw[0] : raw;
+
+        if (!interactionRecord) {
+          throw new Error("No interaction data found.");
+        }
+
+        setInteraction(interactionRecord);
+        console.log("Interaction details:", interactionRecord);
+        // Ensure both IDs exist before fetching meds
+        const [med1, med2] = await Promise.all([
+          interactionRecord.medication1_id
+            ? getMedicationById(interactionRecord.medication1_id.toString())
+            : null,
+          interactionRecord.medication2_id
+            ? getMedicationById(interactionRecord.medication2_id.toString())
+            : null,
+        ]);
+        console.log(interactionRecord.medication2_id.toString(),  "Medication 2:", med2);
+        console.log(interactionRecord.medication1_id.toString(), "Medication 1:", med1);
+        setDefaultMed1(med1);
+        setDefaultMed2(med2);
+        console.log("Medication 2:", med2);
+        console.log("Medication 1:", med1);
+
+        setLoading(false);
       } catch (err) {
-        console.error("Error fetching data:", err)
-        setError("Failed to load interaction details. Please try again later.")
-        setLoading(false)
+        console.error("Error fetching data:", err);
+        setError("Failed to load interaction details. Please try again later.");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [params.id])
+    fetchData();
+  }, [params.id]);
 
   const handleSubmit = async (data: Record<string, any>) => {
-    setSaving(true)
+    setSaving(true);
 
     try {
-      await drugDrugInteractionApi.update(params.id, data)
+      await drugDrugInteractionApi.update(params.id, data);
 
       toast({
         title: "Interaction updated",
         description: "The interaction has been updated successfully.",
-      })
+      });
 
-      router.push("/admin/drug-drug-interactions")
+      router.push("/admin/drug-drug-interactions");
     } catch (error) {
-      console.error("Error updating interaction:", error)
+      console.error("Error updating interaction:", error);
       toast({
         title: "Error",
         description: "An error occurred while updating the interaction.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
-  const medicationOptions = medications.map((med) => ({
-    value: med.medication_id.toString(),
-    label: med.name,
-  }))
-
+  // Define form fields; for the medications we use a custom render
   const formFields = [
     {
       name: "medication1_id",
       label: "Medication 1",
-      type: "select" as const,
-      required: true,
-      options: medicationOptions,
+      type: "custom" as const,
+      render: (fieldProps: any) => (
+        <MedicationSearchBox
+          name="medication1_id"
+          label="Medication 1"
+          defaultValue={defaultMed1}
+          onChange={(selected) =>
+            fieldProps.onChange(selected ? selected.value : null)
+          }
+        />
+      ),
     },
     {
       name: "medication2_id",
       label: "Medication 2",
-      type: "select" as const,
-      required: true,
-      options: medicationOptions,
+      type: "custom" as const,
+      render: (fieldProps: any) => (
+        <MedicationSearchBox
+          name="medication2_id"
+          label="Medication 2"
+          defaultValue={defaultMed2}
+          onChange={(selected) =>
+            fieldProps.onChange(selected ? selected.value : null)
+          }
+        />
+      ),
     },
     {
       name: "severity",
@@ -103,10 +150,14 @@ export default function EditDrugDrugInteractionPage({ params }: { params: { id: 
       type: "textarea" as const,
       required: true,
     },
-  ]
+  ];
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading interaction details...</div>
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading interaction details...
+      </div>
+    );
   }
 
   if (error) {
@@ -124,7 +175,7 @@ export default function EditDrugDrugInteractionPage({ params }: { params: { id: 
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (!interaction) {
@@ -141,13 +192,14 @@ export default function EditDrugDrugInteractionPage({ params }: { params: { id: 
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <FormBuilder
       fields={formFields}
       onSubmit={handleSubmit}
+      // Pass initialData with string values; your custom fields will update these via their onChange handlers
       initialData={{
         ...interaction,
         medication1_id: interaction.medication1_id.toString(),
@@ -157,6 +209,5 @@ export default function EditDrugDrugInteractionPage({ params }: { params: { id: 
       backUrl="/admin/drug-drug-interactions"
       title="Edit Drug-Drug Interaction"
     />
-  )
+  );
 }
-

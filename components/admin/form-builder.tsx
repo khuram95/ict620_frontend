@@ -13,18 +13,26 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
 
-type FieldType = "text" | "textarea" | "number" | "select" | "checkbox" | "date" | "email" | "password"
+type FieldType = "text" | "textarea" | "number" | "select" | "checkbox" | "date" | "email" | "password" | "custom"
 
 interface FormField {
-  name: string
-  label: string
-  type: FieldType
-  required?: boolean
-  placeholder?: string
-  options?: { value: string; label: string }[] // For select fields
-  defaultValue?: any
-  disabled?: boolean
-  rows?: number // For textarea
+  name: string;
+  label: string;
+  type: FieldType;
+  required?: boolean;
+  placeholder?: string;
+  options?: { value: string; label: string }[]; // For select fields
+  defaultValue?: any;
+  disabled?: boolean;
+  rows?: number; // For textarea
+
+  // For "custom" fields:
+  render?: (fieldProps: {
+    value: any;
+    onChange: (val: any) => void;
+    error?: string;
+    isLoading?: boolean;
+  }) => React.ReactNode;
 }
 
 interface FormBuilderProps {
@@ -113,11 +121,28 @@ export default function FormBuilder({
   }
 
   const renderField = (field: FormField) => {
-    const { name, label, type, required, placeholder, options, disabled, rows } = field
+    const { name, label, type, required, placeholder, options, disabled, rows,render  } = field
     const value = formData[name]
     const error = errors[name]
 
     switch (type) {
+      case "custom":
+        // If a custom render function was provided, call it here.
+      // Pass it the current value, onChange, and any relevant props.
+      return render ? (
+        <div className="space-y-2">
+          <Label htmlFor={name}>
+            {label} {required && <span className="text-red-500">*</span>}
+          </Label>
+          {render({
+            value,
+            onChange: (val) => handleChange(name, val),
+            error,
+            isLoading,
+          })}
+          {error && <p className="text-sm text-red-500">{error}</p>}
+        </div>
+      ) : null
       case "text":
       case "email":
       case "password":

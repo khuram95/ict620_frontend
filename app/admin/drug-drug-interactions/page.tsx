@@ -28,8 +28,8 @@ export default function DrugDrugInteractionsPage() {
     const fetchInteractions = async () => {
       try {
         setLoading(true)
-        const data = await drugDrugInteractionApi.getAll()
-        setInteractions(data)
+        const response = await drugDrugInteractionApi.getAll()
+        setInteractions(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching drug-drug interactions:", err)
@@ -41,8 +41,8 @@ export default function DrugDrugInteractionsPage() {
     fetchInteractions()
   }, [])
 
-  const handleDelete = (id: string) => {
-    setDeleteId(id)
+  const handleDelete = (id: string | number) => {
+    setDeleteId(String(id))
   }
 
   const confirmDelete = async () => {

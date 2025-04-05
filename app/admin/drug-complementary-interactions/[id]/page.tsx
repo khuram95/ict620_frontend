@@ -15,104 +15,82 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
-import { medicationApi, type Medication } from "@/lib/api-service"
+import { drugComplementaryInteractionApi, type DrugComplementaryInteraction } from "@/lib/api-service"
 
-// Define the adverse effects JSON structure
-interface AdverseEffects {
-  common?: string
-  uncommon?: string
-  rare?: string
-  veryRare?: string
-  frequency_not_known?: string
-  [key: string]: string | undefined
-}
-
-export default function MedicationDetailPage({ params }: { params: { id: string } }) {
+export default function DrugComplementaryInteractionDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [medication, setMedication] = useState<Medication | null>(null)
+  const [interaction, setInteraction] = useState<DrugComplementaryInteraction | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [adverseEffects, setAdverseEffects] = useState<AdverseEffects | null>(null)
 
   useEffect(() => {
-    const fetchMedication = async () => {
+    const fetchInteraction = async () => {
       try {
         setLoading(true)
-        const res = await medicationApi.getById(params.id)
-        setMedication(res.data)
-        // Parse adverse_effect if it's a JSON string
-        if (res.data?.adverse_effect) {
-          try {
-            const parsedEffects = JSON.parse(res.data.adverse_effect)
-            setAdverseEffects(parsedEffects)
-          } catch (e) {
-            // If parsing fails, treat it as a regular string
-            setAdverseEffects({ common: res.data.adverse_effect })
-          }
-        }
-
+        const data = await drugComplementaryInteractionApi.getById(params.id)
+        setInteraction(data)
         setLoading(false)
       } catch (err) {
-        console.error("Error fetching medication:", err)
-        setError("Failed to load medication details. Please try again later.")
+        console.error("Error fetching drug-complementary interaction:", err)
+        setError("Failed to load drug-complementary interaction details. Please try again later.")
         setLoading(false)
       }
     }
 
-    fetchMedication()
+    fetchInteraction()
   }, [params.id])
 
   const handleDelete = async () => {
     try {
-      await medicationApi.delete(params.id)
+      await drugComplementaryInteractionApi.delete(params.id)
 
       toast({
-        title: "Medication deleted",
-        description: "The medication has been deleted successfully.",
+        title: "Interaction deleted",
+        description: "The interaction has been deleted successfully.",
       })
 
-      router.push("/admin/medications")
+      router.push("/admin/drug-complementary-interactions")
     } catch (error) {
-      console.error("Error deleting medication:", error)
+      console.error("Error deleting interaction:", error)
       toast({
         title: "Error",
-        description: "An error occurred while deleting the medication.",
+        description: "An error occurred while deleting the interaction.",
         variant: "destructive",
       })
     }
   }
 
-  // Helper function to render adverse effects
-  const renderAdverseEffects = () => {
-    if (!adverseEffects) return "No adverse effects information available"
+  const getSeverityBadge = (severity: string | null) => {
+    if (!severity) return <Badge>Unknown</Badge>
 
-    return (
-      <div className="space-y-4">
-        {Object.entries(adverseEffects).map(([key, value]) => (
-          <div key={key} className="space-y-1">
-            <h4 className="font-medium capitalize">{key.replace(/_/g, " ")}:</h4>
-            <p className="text-gray-700">{value}</p>
-          </div>
-        ))}
-      </div>
-    )
+    switch (severity.toLowerCase()) {
+      case "major":
+        return <Badge className="bg-red-100 text-red-800 hover:bg-red-200">{severity}</Badge>
+      case "moderate":
+        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200">{severity}</Badge>
+      case "minor":
+        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">{severity}</Badge>
+      default:
+        return <Badge>{severity}</Badge>
+    }
   }
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading medication details...</div>
+    return <div className="flex justify-center items-center h-64">Loading interaction details...</div>
   }
 
   if (error) {
     return (
       <div className="p-8">
         <div className="flex items-center gap-2 mb-6">
-          <Link href="/admin/medications" className="text-gray-600 hover:text-gray-900">
+          <Link href="/admin/drug-complementary-interactions" className="text-gray-600 hover:text-gray-900">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold">Medication Details</h1>
+          <h1 className="text-2xl font-bold">Drug-Complementary Interaction Details</h1>
         </div>
         <div className="bg-red-50 border border-red-200 rounded-md p-4 text-red-700">
           <h2 className="text-lg font-semibold mb-2">Error</h2>
@@ -128,22 +106,22 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
     )
   }
 
-  if (!medication) {
+  if (!interaction) {
     return (
       <div className="p-8">
         <div className="flex items-center gap-2 mb-6">
-          <Link href="/admin/medications" className="text-gray-600 hover:text-gray-900">
+          <Link href="/admin/drug-complementary-interactions" className="text-gray-600 hover:text-gray-900">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold">Medication Not Found</h1>
+          <h1 className="text-2xl font-bold">Interaction Not Found</h1>
         </div>
         <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-700">
-          <p>The requested medication could not be found.</p>
+          <p>The requested drug-complementary interaction could not be found.</p>
           <Link
-            href="/admin/medications"
+            href="/admin/drug-complementary-interactions"
             className="mt-4 inline-block px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
           >
-            Back to Medications
+            Back to Drug-Complementary Interactions
           </Link>
         </div>
       </div>
@@ -154,13 +132,13 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link href="/admin/medications" className="text-gray-600 hover:text-gray-900">
+          <Link href="/admin/drug-complementary-interactions" className="text-gray-600 hover:text-gray-900">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <h1 className="text-2xl font-bold">{medication.name}</h1>
+          <h1 className="text-2xl font-bold">Drug-Complementary Interaction Details</h1>
         </div>
         <div className="flex items-center gap-2">
-          <Link href={`/admin/medications/${params.id}/edit`} passHref>
+          <Link href={`/admin/drug-complementary-interactions/${params.id}/edit`} passHref>
             <Button variant="outline" className="flex items-center gap-2">
               <Edit className="h-4 w-4" />
               Edit
@@ -180,44 +158,46 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Description</CardTitle>
+            <CardTitle>Medication</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{medication.description || "No description available"}</p>
+            <p>{interaction.medication_name || `ID: ${interaction.medication_id}`}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Indications</CardTitle>
+            <CardTitle>Complementary Medicine</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{medication.indications || "No indications available"}</p>
+            <p>{interaction.complementary_name || `ID: ${interaction.compl_med_id}`}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Counselling</CardTitle>
+            <CardTitle>Severity</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{medication.counselling || "No counselling information available"}</p>
+            <div className="flex items-center">{getSeverityBadge(interaction.severity)}</div>
           </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Adverse Effects</CardTitle>
-          </CardHeader>
-          <CardContent>{renderAdverseEffects()}</CardContent>
         </Card>
 
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Practice Points</CardTitle>
+            <CardTitle>Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{medication.practice_points || "No practice points available"}</p>
+            <p>{interaction.description || "No description available"}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Recommendation</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>{interaction.recommendation || "No recommendation available"}</p>
           </CardContent>
         </Card>
 
@@ -229,15 +209,15 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="font-medium">ID:</span>
-                <span>{medication.medication_id}</span>
+                <span>{interaction.dc_interaction_id}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Created:</span>
-                <span>{new Date(medication.created_at).toLocaleString()}</span>
+                <span>{new Date(interaction.created_at).toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Last Updated:</span>
-                <span>{medication.updated_at ? new Date(medication.updated_at).toLocaleString() : "Never"}</span>
+                <span>{interaction.updated_at ? new Date(interaction.updated_at).toLocaleString() : "Never"}</span>
               </div>
             </div>
           </CardContent>
@@ -249,7 +229,7 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the medication and all associated data.
+              This action cannot be undone. This will permanently delete the interaction and all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
