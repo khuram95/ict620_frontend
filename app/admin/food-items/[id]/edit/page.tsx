@@ -68,11 +68,11 @@ export default function EditFoodItemPage({ params }: { params: { id: string } })
       type: "textarea" as const,
       required: true,
     },
-    {
-      name: "notes",
-      label: "Additional Notes",
-      type: "textarea" as const,
-    },
+    // {
+    //   name: "notes",
+    //   label: "Additional Notes",
+    //   type: "textarea" as const,
+    // },
   ]
 
   if (loading) {

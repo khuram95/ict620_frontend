@@ -47,11 +47,11 @@ export default function NewFoodItemPage() {
       type: "textarea" as const,
       required: true,
     },
-    {
-      name: "notes",
-      label: "Additional Notes",
-      type: "textarea" as const,
-    },
+    // {
+    //   name: "notes",
+    //   label: "Additional Notes",
+    //   type: "textarea" as const,
+    // },
   ]
 
   return (
