@@ -51,7 +51,7 @@ export default function DrugComplementaryInteractionDetailPage({ params }: { par
 
       toast({
         title: "Interaction deleted",
-        description: "The interaction has been deleted successfully.",
+        description: "The interaction has been deleted successfully..",
       })
 
       router.push("/admin/drug-complementary-interactions")
