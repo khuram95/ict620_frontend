@@ -22,12 +22,12 @@ apiClient.interceptors.request.use(config => {
 // Dashboard APi
 export const dashboardApi = {
   getAll: (): Promise<AxiosResponse> =>
-    apiClient.get("/dashboard"),
+    apiClient.get("/dashboard/"),
 };
 
 export const userApi = {
   getAll: (): Promise<AxiosResponse> =>
-    apiClient.get("/users"),
+    apiClient.get("/users/"),
   getOne: (id: number): Promise<AxiosResponse> =>
     apiClient.get(`/users/${id}`),
   create: (data: any): Promise<AxiosResponse> =>
