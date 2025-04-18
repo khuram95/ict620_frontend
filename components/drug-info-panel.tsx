@@ -1,208 +1,182 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Search } from "lucide-react"
-
-// Define the drug info type
-interface DrugInfo {
-  name: string
-  description: string
-  indication: string
-  adverseEffect: string
-  practicePoints: string
-  references: string
-}
+import React, { useState } from "react"; // Import React for JSX typing
+import { Card, CardContent } from "@/components/ui/card";
+import MedicationSearchBox, { OptionType } from "./ui/medication-search-box"; // Adjust path if needed
+import { medicationApi, Medication } from "@/lib/api-service"; // Adjust path if needed
 
 export default function DrugInfoPanel() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [searchResults, setSearchResults] = useState<DrugInfo[]>([])
-  const [selectedDrug, setSelectedDrug] = useState<DrugInfo | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [selectedDrug, setSelectedDrug] = useState<Medication | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<OptionType | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Dummy data for pre-populated drugs
-  const dummyDrugs: DrugInfo[] = [
-    {
-      name: "Aspirin",
-      description:
-        "Aspirin is a nonsteroidal anti-inflammatory drug (NSAID) used to reduce pain, fever, and inflammation. It also has antiplatelet effects and is used in low doses to prevent heart attacks and stroke.",
-      indication:
-        "Pain relief, fever reduction, inflammation, prevention of blood clots, prevention of heart attacks and strokes in high-risk patients.",
-      adverseEffect:
-        "Gastrointestinal bleeding, stomach ulcers, tinnitus (ringing in ears), allergic reactions, increased bleeding risk. Reye's syndrome in children with viral illnesses.",
-      practicePoints:
-        "Take with food to reduce stomach upset. Not recommended for children under 12 years due to risk of Reye's syndrome. Use caution in patients with asthma, peptic ulcers, or bleeding disorders.",
-      references:
-        "Antman, E. M., et al. (2007). Use of nonsteroidal antiinflammatory drugs: an update for clinicians. Circulation, 115(12), 1634-1642.",
-    },
-    {
-      name: "Metformin",
-      description:
-        "Metformin is a biguanide antihyperglycemic agent used as first-line therapy for type 2 diabetes mellitus. It improves insulin sensitivity and reduces hepatic glucose production.",
-      indication:
-        "Type 2 diabetes mellitus, polycystic ovary syndrome (off-label), prevention of type 2 diabetes in high-risk individuals.",
-      adverseEffect:
-        "Gastrointestinal disturbances (diarrhea, nausea, vomiting), metallic taste, vitamin B12 deficiency with long-term use. Rare but serious: lactic acidosis, especially in renal impairment.",
-      practicePoints:
-        "Take with meals to minimize gastrointestinal side effects. Start with low dose and titrate gradually. Monitor renal function. Temporarily discontinue before procedures using iodinated contrast media.",
-      references:
-        "Inzucchi, S. E., et al. (2015). Management of hyperglycemia in type 2 diabetes, 2015: a patient-centered approach. Diabetes Care, 38(1), 140-149.",
-    },
-    {
-      name: "Atorvastatin",
-      description:
-        "Atorvastatin is an HMG-CoA reductase inhibitor (statin) that reduces cholesterol production in the liver. It is one of the most potent statins for lowering LDL cholesterol.",
-      indication:
-        "Primary hypercholesterolemia, mixed dyslipidemia, prevention of cardiovascular disease, familial hypercholesterolemia.",
-      adverseEffect:
-        "Myalgia, elevated liver enzymes, rhabdomyolysis (rare), increased risk of diabetes, cognitive effects. May interact with grapefruit juice and certain medications.",
-      practicePoints:
-        "Take at the same time each day, preferably in the evening. Monitor liver function and creatine kinase levels. Consider CoQ10 supplementation for patients with muscle symptoms.",
-      references:
-        "Stone, N. J., et al. (2014). 2013 ACC/AHA guideline on the treatment of blood cholesterol to reduce atherosclerotic cardiovascular risk in adults. Circulation, 129(25 Suppl 2), S1-S45.",
-    },
-  ]
+  const handleMedicationSelect = async (selected: OptionType | null) => {
+    setSelectedOption(selected);
+    setError(null);
 
-  // Initialize with dummy data
-  useEffect(() => {
-    setSearchResults(dummyDrugs)
-  }, [])
-
-  const handleSearch = async () => {
-    if (!searchTerm) {
-      setSearchResults(dummyDrugs)
-      return
-    }
-
-    setLoading(true)
-    try {
-      // Filter dummy data based on search term
-      const filteredResults = dummyDrugs.filter((drug) => drug.name.toLowerCase().includes(searchTerm.toLowerCase()))
-
-      // If no results found in dummy data, add a simulated result
-      if (filteredResults.length === 0) {
-        const simulatedDrug: DrugInfo = {
-          name: searchTerm,
-          description: `This is a sample description for ${searchTerm}.`,
-          indication: `Sample indications for when ${searchTerm} should be used.`,
-          adverseEffect: `Potential side effects of ${searchTerm} include dizziness, nausea, and headache.`,
-          practicePoints: `Take ${searchTerm} with food. Avoid alcohol consumption while taking this medication.`,
-          references: `Smith, J. et al. (2023). ${searchTerm} Information Journal, 45(2), 123-145.`,
+    if (selected) {
+      setLoadingDetails(true);
+      setSelectedDrug(null);
+      try {
+        const response = await medicationApi.getById(selected.value);
+        const drugDetails: Medication | null = response.data;
+        if (drugDetails) {
+          setSelectedDrug(drugDetails);
+        } else {
+          setError(`Details not found for the selected medication.`);
+          setSelectedDrug(null);
         }
-        setSearchResults([simulatedDrug])
-      } else {
-        setSearchResults(filteredResults)
+      } catch (err: any) {
+        console.error("Error fetching medication details:", err);
+        setError("Failed to fetch medication details. Please try again.");
+        setSelectedDrug(null);
+      } finally {
+        setLoadingDetails(false);
+      }
+    } else {
+      setSelectedDrug(null);
+    }
+  };
+
+  // Helper function to render standard detail fields (as single block of text)
+  const renderDetailField = (label: string, content: string | null | undefined) => {
+    if (!content) return null;
+    return (
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row">
+          <div className="w-full sm:w-40 font-semibold mb-1 sm:mb-0">{label}:</div>
+          <div className="flex-1 whitespace-pre-wrap">{content}</div>
+        </div>
+      </div>
+    );
+  };
+
+  // Helper function for Adverse Effects (parsing JSON)
+  const renderAdverseEffects = (jsonString: string | null | undefined): React.ReactNode => {
+     if (!jsonString) return null;
+     try {
+       const adverseData = JSON.parse(jsonString);
+       if (typeof adverseData !== 'object' || adverseData === null) {
+          throw new Error("Parsed data is not an object");
+       }
+       return (
+         <div className="mb-6">
+           <div className="flex flex-col sm:flex-row">
+             <div className="w-full sm:w-40 font-semibold mb-1 sm:mb-0">Adverse Effects:</div>
+             <div className="flex-1 space-y-3">
+               {Object.entries(adverseData).map(([key, value]) => (
+                 <div key={key}>
+                   <h4 className="font-medium text-sm capitalize mb-1">{key.replace(/_/g, ' ')}:</h4>
+                   {Array.isArray(value) ? (
+                     <ul className="list-disc list-inside pl-4 text-sm space-y-1">
+                       {value.map((item, index) => <li key={index}>{item}</li>)}
+                     </ul>
+                   ) : typeof value === 'string' ? (
+                     <p className="text-sm whitespace-pre-wrap">{value}</p>
+                   ) : (
+                     <p className="text-sm text-gray-500">[Unsupported format]</p>
+                   )}
+                 </div>
+               ))}
+             </div>
+           </div>
+         </div>
+       );
+     } catch (e) {
+       console.error("Failed to parse adverse_effect JSON:", e);
+       return (
+         <div className="mb-6">
+           <div className="flex flex-col sm:flex-row">
+             <div className="w-full sm:w-40 font-semibold mb-1 sm:mb-0">Adverse Effects:</div>
+             <div className="flex-1 whitespace-pre-wrap text-sm text-red-700">
+               (Could not parse details, showing raw data): <br /> {jsonString}
+             </div>
+           </div>
+         </div>
+       );
+     }
+  };
+
+  // *** NEW HELPER FUNCTION for Practice Points ***
+  const renderPracticePoints = (text: string | null | undefined): React.ReactNode => {
+      if (!text) return null;
+
+      // Split the string by semicolon, trim whitespace, and filter out empty strings
+      const points = text.split(';')
+                         .map(point => point.trim())
+                         .filter(point => point.length > 0);
+
+      if (points.length === 0) {
+          // If splitting resulted in nothing (e.g., text was just ";;")
+          return renderDetailField("Practice Points", text); // Fallback to original renderer
       }
 
-      // Select the first result
-      setSelectedDrug(filteredResults[0] || null)
-    } catch (error) {
-      console.error("Error fetching drug information:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
+      return (
+          <div className="mb-6">
+              <div className="flex flex-col sm:flex-row">
+                  <div className="w-full sm:w-40 font-semibold mb-1 sm:mb-0">Practice Points:</div>
+                  <div className="flex-1">
+                      {/* Render as an unordered list */}
+                      <ul className="list-disc list-inside space-y-1 text-sm">
+                          {points.map((point, index) => (
+                              <li key={index}>{point}</li>
+                          ))}
+                      </ul>
+                  </div>
+              </div>
+          </div>
+      );
+  };
 
-  const handleDrugSelect = (drug: DrugInfo) => {
-    setSelectedDrug(drug)
-  }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="mb-4 p-4 border border-gray-200 rounded-md">
-        <div className="flex gap-2">
-          <div className="relative flex-grow">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search Drug"
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            />
-          </div>
-          <Button onClick={handleSearch} className="bg-gray-200 hover:bg-gray-300 text-gray-800" disabled={loading}>
-            Search
-          </Button>
-        </div>
+    <div className="h-full flex flex-col p-4">
+      {/* Search Box Area */}
+      <div className="mb-4">
+        <MedicationSearchBox
+          name="medicationSearch"
+          label="Search for Medication"
+          onChange={handleMedicationSelect}
+        />
+        {loadingDetails && (
+          <p className="text-sm text-gray-500 mt-1">Loading details...</p>
+        )}
+        {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 flex-grow">
-        {/* Drug List */}
-        <div className="w-full md:w-1/3">
-          <h2 className="text-lg font-semibold mb-2">Drug List</h2>
-          <div className="space-y-2 overflow-auto max-h-[calc(100vh-250px)]">
-            {searchResults.map((drug, index) => (
-              <Card
-                key={index}
-                className={`cursor-pointer hover:bg-gray-50 transition-colors ${selectedDrug?.name === drug.name ? "border-teal-500 bg-teal-50" : ""}`}
-                onClick={() => handleDrugSelect(drug)}
-              >
-                <CardContent className="p-3">
-                  <h3 className="font-medium">{drug.name}</h3>
-                  <p className="text-sm text-gray-500 truncate">{drug.description.substring(0, 60)}...</p>
-                </CardContent>
-              </Card>
-            ))}
-            {searchResults.length === 0 && (
-              <div className="text-center p-4 text-gray-500">No drugs found. Try a different search term.</div>
-            )}
+      {/* Drug Details Area */}
+      <div className="flex-grow overflow-auto border border-gray-200 rounded-md p-4">
+        {selectedDrug ? (
+          <div>
+            <h1 className="text-2xl font-bold mb-6">{selectedDrug.name}</h1>
+
+            {/* Render standard fields */}
+            {renderDetailField("Description", selectedDrug.description)}
+            {renderDetailField("Indications", selectedDrug.indications)}
+
+            {/* Use the helper for Adverse Effects */}
+            {renderAdverseEffects(selectedDrug.adverse_effect)}
+
+            {/* *** Use the new helper for Practice Points *** */}
+            {renderPracticePoints(selectedDrug.practice_points)}
+
+            {/* Render other standard fields */}
+            {renderDetailField("Counselling", selectedDrug.counselling)}
+
           </div>
-        </div>
-
-        {/* Drug Details */}
-        <div className="w-full md:w-2/3 overflow-auto">
-          {selectedDrug ? (
-            <div className="border border-gray-200 rounded-md p-4">
-              <h1 className="text-2xl font-bold mb-6">{selectedDrug.name}</h1>
-
-              <div className="mb-6">
-                <div className="flex">
-                  <div className="w-32 font-semibold">Description :</div>
-                  <div className="flex-1">{selectedDrug.description}</div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex">
-                  <div className="w-32 font-semibold">Indication :</div>
-                  <div className="flex-1">{selectedDrug.indication}</div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex">
-                  <div className="w-32 font-semibold">Adverse Effect :</div>
-                  <div className="flex-1">{selectedDrug.adverseEffect}</div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex">
-                  <div className="w-32 font-semibold">Practice Points:</div>
-                  <div className="flex-1">{selectedDrug.practicePoints}</div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex">
-                  <div className="w-32 font-semibold">References :</div>
-                  <div className="flex-1">{selectedDrug.references}</div>
-                </div>
-              </div>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center text-gray-500">
+              {!loadingDetails && !error && (
+                <p>
+                  Search for a medication above to view detailed information.
+                </p>
+              )}
             </div>
-          ) : (
-            <div className="flex items-center justify-center h-full p-4 border border-gray-200 rounded-md">
-              <div className="text-center text-gray-500">
-                <p>Select a drug from the list to view detailed information.</p>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }
-
