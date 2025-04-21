@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
+import { Checkbox } from "@/components/ui/checkbox"
 
 // Define the adverse effects JSON structure
 interface AdverseEffects {
@@ -42,6 +43,12 @@ export default function NewMedicationPage() {
     frequency_not_known: "",
   })
 
+  const [selectedSchedules, setSelectedSchedules] = useState<number[]>([])
+
+  // Available schedules
+  const availableSchedules = [2, 3, 4, 8]
+
+
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -49,6 +56,14 @@ export default function NewMedicationPage() {
 
   const handleAdverseEffectsChange = (key: string, value: string) => {
     setAdverseEffects((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleScheduleChange = (schedule: number, checked: boolean) => {
+    if (checked) {
+      setSelectedSchedules((prev) => [...prev, schedule])
+    } else {
+      setSelectedSchedules((prev) => prev.filter((s) => s !== schedule))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +75,7 @@ export default function NewMedicationPage() {
       const dataToSubmit = {
         ...formData,
         adverse_effect: JSON.stringify(adverseEffects),
+        schedules: selectedSchedules,
       }
 
       await medicationApi.create(dataToSubmit)
@@ -99,6 +115,24 @@ export default function NewMedicationPage() {
               <div className="space-y-2">
                 <Label htmlFor="name">Medication Name</Label>
                 <Input id="name" name="name" value={formData.name} onChange={handleFormChange} required />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Schedules</Label>
+                <div className="grid grid-cols-2 gap-4 border rounded-md p-4">
+                  {availableSchedules.map((schedule) => (
+                    <div key={schedule} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`schedule-${schedule}`}
+                        checked={selectedSchedules.includes(schedule)}
+                        onCheckedChange={(checked) => handleScheduleChange(schedule, checked === true)}
+                      />
+                      <Label htmlFor={`schedule-${schedule}`} className="cursor-pointer">
+                        Schedule {schedule}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2 md:col-span-2">

@@ -45,6 +45,7 @@ export interface Medication {
   counselling?: string | null;
   adverse_effect?: string | null;
   practice_points?: string | null;
+  schedules?: number[];
   created_at?: string;
   updated_at?: string | null;
 }

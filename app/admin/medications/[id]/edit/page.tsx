@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
+import { Checkbox } from "@/components/ui/checkbox"
 
 // Define the adverse effects JSON structure
 interface AdverseEffects {
@@ -39,6 +40,11 @@ export default function EditMedicationPage({ params }: { params: { id: string } 
     frequency_not_known: "",
   })
 
+  const [selectedSchedules, setSelectedSchedules] = useState<number[]>([])
+
+  // Available schedules
+  const availableSchedules = [2, 3, 4, 8]
+
   useEffect(() => {
     const fetchMedication = async () => {
       try {
@@ -54,6 +60,9 @@ export default function EditMedicationPage({ params }: { params: { id: string } 
           counselling: response.data.counselling || "",
           practice_points: response.data.practice_points || "",
         })
+
+         // Set selected schedules
+         setSelectedSchedules(response.data.schedules || [])
 
         // Parse adverse_effect if it's a JSON string
         if (response.data?.adverse_effect) {
@@ -86,15 +95,25 @@ export default function EditMedicationPage({ params }: { params: { id: string } 
     setAdverseEffects((prev) => ({ ...prev, [key]: value }))
   }
 
+  const handleScheduleChange = (schedule: number, checked: boolean) => {
+    if (checked) {
+      setSelectedSchedules((prev) => [...prev, schedule])
+    } else {
+      setSelectedSchedules((prev) => prev.filter((s) => s !== schedule))
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
 
     try {
+      // debugger
       // Combine form data with adverse effects
       const dataToSubmit = {
         ...formData,
         adverse_effect: JSON.stringify(adverseEffects),
+        schedules: selectedSchedules,
       }
 
       await medicationApi.update(params.id, dataToSubmit)
@@ -173,6 +192,24 @@ export default function EditMedicationPage({ params }: { params: { id: string } 
               <div className="space-y-2">
                 <Label htmlFor="name">Medication Name</Label>
                 <Input id="name" name="name" value={formData.name || ""} onChange={handleFormChange} required />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Schedules</Label>
+                <div className="grid grid-cols-2 gap-4 border rounded-md p-4">
+                  {availableSchedules.map((schedule) => (
+                    <div key={schedule} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`schedule-${schedule}`}
+                        checked={selectedSchedules.includes(schedule)}
+                        onCheckedChange={(checked) => handleScheduleChange(schedule, checked === true)}
+                      />
+                      <Label htmlFor={`schedule-${schedule}`} className="cursor-pointer">
+                        Schedule {schedule}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-2 md:col-span-2">

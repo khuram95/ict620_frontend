@@ -15,6 +15,7 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import { Pill } from "lucide-react"
 import { medicationApi, type Medication } from "@/lib/api-service"
+import { Badge } from "@/components/ui/badge"
 
 export default function MedicationsPage() {
   const [medications, setMedications] = useState<Medication[]>([])
@@ -66,6 +67,21 @@ export default function MedicationsPage() {
     }
   }
 
+  // Helper function to render schedule badges
+  const renderSchedules = (schedules?: number[]) => {
+    if (!schedules || schedules.length === 0) return <span className="text-gray-400">None</span>
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {schedules.map((schedule) => (
+          <Badge key={schedule} variant="outline" className="bg-gray-100">
+            S{schedule}
+          </Badge>
+        ))}
+      </div>
+    )
+  }
+
   const columns = [
     {
       key: "medication_id",
@@ -74,6 +90,11 @@ export default function MedicationsPage() {
     {
       key: "name",
       title: "Name",
+    },
+    {
+      key: "schedules",
+      title: "Schedules",
+      render: (item: Medication) => renderSchedules(item.schedules),
     },
     {
       key: "description",

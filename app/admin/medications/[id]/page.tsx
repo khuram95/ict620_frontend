@@ -18,6 +18,7 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import { medicationApi, type Medication } from "@/lib/api-service"
+import { Badge } from "@/components/ui/badge"
 
 // Define the adverse effects JSON structure
 interface AdverseEffects {
@@ -96,6 +97,21 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
             <h4 className="font-medium capitalize">{key.replace(/_/g, " ")}:</h4>
             <p className="text-gray-700">{value}</p>
           </div>
+        ))}
+      </div>
+    )
+  }
+
+  // Helper function to render schedule badges
+  const renderSchedules = (schedules?: number[]) => {
+    if (!schedules || schedules.length === 0) return <span className="text-gray-400">None</span>
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {schedules.map((schedule) => (
+          <Badge key={schedule} variant="outline" className="bg-gray-100 text-gray-800">
+            Schedule {schedule}
+          </Badge>
         ))}
       </div>
     )
@@ -185,6 +201,13 @@ export default function MedicationDetailPage({ params }: { params: { id: string 
           <CardContent>
             <p>{medication.description || "No description available"}</p>
           </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Schedules</CardTitle>
+          </CardHeader>
+          <CardContent>{renderSchedules(medication.schedules)}</CardContent>
         </Card>
 
         <Card>
