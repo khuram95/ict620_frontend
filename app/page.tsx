@@ -31,10 +31,6 @@ export default function Home() {
         }
     }, []);
 
-    const handleLogin = (success: boolean) => {
-        setIsLoggedIn(success);
-    };
-
     const handleTabChange = (tabValue: string) => {
         // Ensure the value matches the expected types
         const newTab = tabValue as typeof activeTab;
@@ -89,16 +85,6 @@ export default function Home() {
         setShouldCheckInteractions(false);
     };
 
-    // --- Render Logic ---
-
-    if (!isLoggedIn) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <LoginForm onLogin={handleLogin} />
-            </div>
-        );
-    }
-
     // Determine the title for the left panel based on active tab
     const getLeftPanelTitle = () => {
         switch (activeTab) {
@@ -124,13 +110,8 @@ export default function Home() {
             {/* Top Frame - Header */}
             <Header
                 onClearSelections={handleClearSelections}
-                onLogout={() => {
-                    localStorage.removeItem("token"); // Use 'token' consistently
-                    setIsLoggedIn(false);
-                    setSelectedItems([]); // Clear selections on logout
-                    setShouldCheckInteractions(false);
-                }}
                 activeTab={activeTab}
+                isLoggedIn={isLoggedIn}
                 onTabChange={handleTabChange} // Pass the handler
             />
 

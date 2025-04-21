@@ -7,12 +7,12 @@ import { Database } from "lucide-react"
 // Update the HeaderProps interface to include the active tab
 interface HeaderProps {
   onClearSelections: () => void
-  onLogout: () => void
   activeTab: string
+  isLoggedIn: boolean
   onTabChange: (tab: string) => void
 }
 
-export default function Header({ onClearSelections, onLogout, activeTab, onTabChange }: HeaderProps) {
+export default function Header({ onClearSelections, activeTab, isLoggedIn, onTabChange }: HeaderProps) {
   return (
     <header className="bg-teal-700 text-white p-4 shadow-md">
       <div className="container mx-auto flex flex-col md:flex-row items-center justify-between">
@@ -63,15 +63,12 @@ export default function Header({ onClearSelections, onLogout, activeTab, onTabCh
               Patient Tracker
             </button>
           </div>
-          <Link href="/admin" className="text-white hover:text-teal-200 flex items-center gap-1">
+          <Link href={isLoggedIn ? "/admin" : "/admin/login" } className="text-white hover:text-teal-200 flex items-center gap-1">
             <Database className="h-4 w-4" />
             <span>Admin</span>
           </Link>
           <Button variant="outline" onClick={onClearSelections} className="border-white text-white hover:bg-teal-600">
             Clear All
-          </Button>
-          <Button variant="outline" onClick={onLogout} className="border-white text-white hover:bg-teal-600">
-            Logout
           </Button>
         </div>
       </div>

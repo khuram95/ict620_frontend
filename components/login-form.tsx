@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import Link from "next/link"
 // Import the apiService (adjust the path as necessary)
 import { userApi } from "../lib/api-service"
 
@@ -34,12 +35,12 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
 
     try {
       // Use the user API's login method from our apiService.
-      const res = await userApi.login(username, password)
+      const res = await userApi.login({email: username, password: password})
       // Extract token and user info from the response.
       const { token, user } = res.data
 
       // Save the JWT token to localStorage for subsequent API calls.
-      localStorage.setItem("jwtToken", token)
+      localStorage.setItem("token", token)
       onLogin(true)
       console.log("Login successful for user:", user)
     } catch (err: any) {
@@ -88,7 +89,12 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
       </CardContent>
       <CardFooter className="flex flex-col">
         <p className="text-xs text-center text-gray-500 mt-2">
-          For pharmacy student interns only. Unauthorized access is prohibited.
+          <Link
+            href="/"
+            className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
+          >
+            <span className="ml-3">Home page</span>
+          </Link>
         </p>
       </CardFooter>
     </Card>
