@@ -41,6 +41,7 @@ export interface Medication {
   medication_id: number;
   name: string;
   description?: string | null;
+  reference_url?: string | null;
   indications?: string | null;
   counselling?: string | null;
   adverse_effect?: string | null;
@@ -71,6 +72,7 @@ export interface FoodItem {
 
 export interface Reference {
   reference_id: number;
+  medication_id: string;
   title?: string | null;
   url?: string | null;
   source_type?: string | null;

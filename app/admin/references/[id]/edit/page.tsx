@@ -78,21 +78,28 @@ export default function EditReferencePage({ params }: { params: { id: string } }
       ],
     },
     {
-      name: "authors",
-      label: "Authors",
-      type: "text" as const,
+      name: "medication_id",
+      label: "Associated Medication *",
+      type: "medication_typesense" as const,
+      required: true,
     },
-    {
-      name: "publication_date",
-      label: "Publication Date",
-      type: "date" as const,
-    },
+    // {
+    //   name: "authors",
+    //   label: "Authors",
+    //   type: "text" as const,
+    // },
+    // {
+    //   name: "publication_date",
+    //   label: "Publication Date",
+    //   type: "date" as const,
+    // },
   ]
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading reference details...</div>
   }
 
+  console.log("reference", reference)
   if (error) {
     return (
       <div className="p-8">

@@ -58,15 +58,21 @@ export default function NewReferencePage() {
       ],
     },
     {
-      name: "authors",
-      label: "Authors",
-      type: "text" as const,
+      name: "medication_id",
+      label: "Associated Medication *",
+      type: "medication_typesense" as const,
+      required: true,
     },
-    {
-      name: "publication_date",
-      label: "Publication Date",
-      type: "date" as const,
-    },
+    // {
+    //   name: "authors",
+    //   label: "Authors",
+    //   type: "text" as const,
+    // },
+    // {
+    //   name: "publication_date",
+    //   label: "Publication Date",
+    //   type: "date" as const,
+    // },
   ]
 
   return (

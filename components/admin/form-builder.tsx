@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
+import MedicationSearchBox from "@/components/ui/medication-search-box"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
 
-type FieldType = "text" | "textarea" | "number" | "select" | "checkbox" | "date" | "email" | "password" | "custom"
+type FieldType = "text" | "textarea" | "number" | "select" | "checkbox" | "date" | "email" | "password" | "custom" | "medication_typesense"
 
 interface FormField {
   name: string;
@@ -208,6 +209,19 @@ export default function FormBuilder({
             {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
         )
+
+        case "medication_typesense":
+          return (
+            <div className="space-y-2">
+              <MedicationSearchBox
+                name="medication_id"
+                label="Associated Medication *"
+                defaultValue={ {value: initialData["medication_id"], label: initialData["medication_name"]} }
+                onChange={(selected) => handleChange("medication_id", selected ? selected.value : "")}
+              />
+            {error && <p className="text-sm text-red-500">{error}</p>}
+            </div>
+          )
 
       case "checkbox":
         return (

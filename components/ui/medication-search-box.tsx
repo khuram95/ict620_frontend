@@ -22,6 +22,7 @@ const MedicationSearchBox: React.FC<MedicationSearchBoxProps> = ({
   defaultValue,
   onChange,
 }) => {
+  console.log("default  ", defaultValue)
   // This function calls your Typesense search as the user types.
   const loadOptions = async (inputValue: string): Promise<OptionType[]> => {
     try {
@@ -34,8 +35,8 @@ const MedicationSearchBox: React.FC<MedicationSearchBoxProps> = ({
   };
 
   return (
-    <div className="form-group mb-4">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+    <div className="form-group mb-4 space-y-2">
+      <label htmlFor={name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
         {label}
       </label>
       <AsyncSelect
