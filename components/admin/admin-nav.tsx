@@ -18,7 +18,6 @@ import {
   X,
   ChevronDown,
   ChevronRight,
-  LogOut
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -123,10 +122,6 @@ export default function AdminNav() {
     },
   ]
 
-  const handleLogout = () => {
-      localStorage.removeItem("token"); // Use 'token' consistently
-  }
-
   return (
     <>
       <div className="md:hidden flex items-center justify-between p-4 bg-teal-700 text-white">
@@ -204,15 +199,6 @@ export default function AdminNav() {
           </nav>
 
           <div className="pt-4 border-t">
-            <Link
-              href="/"
-              className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="ml-3">Logout</span>
-            </Link>
-
             <Link
               href="/"
               className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"

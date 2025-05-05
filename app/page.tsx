@@ -18,6 +18,7 @@ interface SelectedItem {
 
 export default function Home() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
     const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]); // Renamed for clarity
     // Removed isCheckingInteractions - InteractionPanel handles its own loading
     const [shouldCheckInteractions, setShouldCheckInteractions] = useState(false);
@@ -26,10 +27,17 @@ export default function Home() {
     // Check for a JWT token on mount (assuming token stored in localStorage)
     useEffect(() => {
         const token = localStorage.getItem("token"); // Use 'token' as defined in api-service interceptor logic
+        const admin = localStorage.getItem("isAdmin");
         if (token) {
             setIsLoggedIn(true);
+            setIsAdmin(admin)
+            console.log("admin", admin)
         }
     }, []);
+
+    const handleLogin = (success: boolean) => {
+        setIsLoggedIn(success);
+    };
 
     const handleTabChange = (tabValue: string) => {
         // Ensure the value matches the expected types
@@ -85,6 +93,16 @@ export default function Home() {
         setShouldCheckInteractions(false);
     };
 
+    // --- Render Logic ---
+
+    if (!isLoggedIn) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                <LoginForm onLogin={handleLogin} />
+            </div>
+        );
+    }
+
     // Determine the title for the left panel based on active tab
     const getLeftPanelTitle = () => {
         switch (activeTab) {
@@ -110,9 +128,16 @@ export default function Home() {
             {/* Top Frame - Header */}
             <Header
                 onClearSelections={handleClearSelections}
+                onLogout={() => {
+                    localStorage.removeItem("token"); // Use 'token' consistently
+                    setIsLoggedIn(false);
+                    setSelectedItems([]); // Clear selections on logout
+                    setShouldCheckInteractions(false);
+                }}
+                isAdmin={isAdmin}
                 activeTab={activeTab}
-                isLoggedIn={isLoggedIn}
                 onTabChange={handleTabChange} // Pass the handler
+                
             />
 
             {/* Main Content Area */}
