@@ -97,6 +97,10 @@ export default function MedicationsPage() {
       render: (item: Medication) => renderSchedules(item.schedules),
     },
     {
+      key: "reference_url",
+      title: "Reference",
+    },
+    {
       key: "description",
       title: "Description",
       render: (item: Medication) => <div className="max-w-xs truncate">{item.description || "No description"}</div>,

@@ -148,7 +148,17 @@ export default function DataTable<T>({
                 <TableRow key={String(item[primaryKey])}>
                   {columns.map((column) => (
                     <TableCell key={`${String(item[primaryKey])}-${column.key}`}>
-                      {column.render ? column.render(item) : String(item[column.key as keyof T] || "")}
+                      {column.key === "reference_url" && String(item[column.key as keyof T] || "")
+                      ? <Link
+                        key={`${String(item[primaryKey])}-${column.key}`}
+                        href={String(item[column.key as keyof T] || "")}
+                        target="_blank"
+                        className="px-2 py-1 text-md bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                        >
+                          View
+                        </Link>
+                      : column.render ? column.render(item) : String(item[column.key as keyof T] || "")
+                      }
                     </TableCell>
                   ))}
                   {(actions.edit || actions.delete || actions.view || actions.custom) && (
