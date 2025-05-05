@@ -41,6 +41,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
 
       // Save the JWT token to localStorage for subsequent API calls.
       localStorage.setItem("token", token)
+      localStorage.setItem("isAdmin", user?.is_admin)
       onLogin(true)
       console.log("Login successful for user:", user)
     } catch (err: any) {
