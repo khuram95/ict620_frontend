@@ -8,6 +8,7 @@ import { Database } from "lucide-react"
 interface HeaderProps {
   onClearSelections: () => void
   onLogout: () => void
+  isAdmin: string
   activeTab: string
   onTabChange: (tab: string) => void
 }
@@ -64,7 +65,7 @@ export default function Header({ onClearSelections, onLogout, isAdmin, activeTab
               Patient Tracker
             </button>
           </div>
-          {isAdmin == true &&
+          {isAdmin == 'true' &&
             <Link href="/admin" className="text-white hover:text-teal-200 flex items-center gap-1">
               <Database className="h-4 w-4" />
               <span>Admin</span>
