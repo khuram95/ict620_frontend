@@ -4,6 +4,7 @@ import React, { useState } from "react"; // Import React for JSX typing
 import { Card, CardContent } from "@/components/ui/card";
 import MedicationSearchBox, { OptionType } from "./ui/medication-search-box"; // Adjust path if needed
 import { medicationApi, Medication } from "@/lib/api-service"; // Adjust path if needed
+import Link from "next/link"
 
 export default function DrugInfoPanel() {
   const [selectedDrug, setSelectedDrug] = useState<Medication | null>(null);
@@ -98,6 +99,52 @@ export default function DrugInfoPanel() {
      }
   };
 
+  // Helper function for render CMIReferences
+  const renderCMIReferences = (references: Array<string> | null | undefined): React.ReactNode => {
+    if (!(references && references?.length > 0)) return null;
+    return (
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row">
+          <div className="w-full sm:w-40 font-semibold mb-1 sm:mb-0">CMI References:</div>
+          <div className="flex-1 whitespace-pre-wrap">
+            {
+              references?.map((reference_url) => ( <li  key={String(reference_url)}>
+                <Link
+                key={String(reference_url)}
+                href={String(reference_url)}
+                target="_blank"
+                className="px-2 py-1 text-md text-blue-700 rounded hover:bg-blue-200"
+                >
+                  {reference_url}
+                </Link></li>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+   // Helper function for Adverse Effects (parsing JSON)
+   const renderAllergies = (allergies: Array<string> | null | undefined): React.ReactNode => {
+    console.log("allergies", allergies)
+    if (!(allergies && allergies?.length > 0)) return null;
+    return (
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row">
+          <div className="w-full sm:w-40 font-semibold mb-1 sm:mb-0">Allergies:</div>
+          <div className="flex-1 whitespace-pre-wrap">
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              {allergies.map((allergy, index) => (
+                  <li key={index}>{allergy}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // *** NEW HELPER FUNCTION for Practice Points ***
   const renderPracticePoints = (text: string | null | undefined): React.ReactNode => {
       if (!text) return null;
@@ -157,6 +204,12 @@ export default function DrugInfoPanel() {
 
             {/* Use the helper for Adverse Effects */}
             {renderAdverseEffects(selectedDrug.adverse_effect)}
+
+             {/* Use the helper for CMI */}
+             {renderCMIReferences(selectedDrug.reference_url)}
+
+             {/* Use the helper for allergies */}
+             {renderAllergies(selectedDrug.allergies)}
 
             {/* *** Use the new helper for Practice Points *** */}
             {renderPracticePoints(selectedDrug.practice_points)}
