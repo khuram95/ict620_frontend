@@ -34,7 +34,7 @@ export default function DrugDrugInteractionDetailPage({ params }: { params: { id
         // In a real implementation, this would call the API
         const response = await drugDrugInteractionApi.getById(params.id)
         console.log("Interaction details:", response.data)
-        setInteraction(Array.isArray(response.data) && response.data.length > 0 ? response.data[0] : null)
+        setInteraction(response.data ? response.data : null)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching drug-drug interaction:", err)
