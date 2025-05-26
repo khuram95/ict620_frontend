@@ -32,6 +32,7 @@ export default function DrugComplementaryInteractionDetailPage({ params }: { par
       try {
         setLoading(true)
         const response = await drugComplementaryInteractionApi.getById(params.id)
+        console.log(response.data)
         setInteraction(response.data)
         setLoading(false)
       } catch (err) {
