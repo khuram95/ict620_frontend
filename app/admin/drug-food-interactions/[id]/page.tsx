@@ -31,8 +31,8 @@ export default function DrugFoodInteractionDetailPage({ params }: { params: { id
     const fetchInteraction = async () => {
       try {
         setLoading(true)
-        const data = await drugFoodInteractionApi.getById(params.id)
-        setInteraction(data)
+        const response = await drugFoodInteractionApi.getById(params.id)
+        setInteraction(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching drug-food interaction:", err)

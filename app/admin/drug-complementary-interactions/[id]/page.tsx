@@ -31,8 +31,8 @@ export default function DrugComplementaryInteractionDetailPage({ params }: { par
     const fetchInteraction = async () => {
       try {
         setLoading(true)
-        const data = await drugComplementaryInteractionApi.getById(params.id)
-        setInteraction(data)
+        const response = await drugComplementaryInteractionApi.getById(params.id)
+        setInteraction(response.data)
         setLoading(false)
       } catch (err) {
         console.error("Error fetching drug-complementary interaction:", err)
